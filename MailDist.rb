@@ -7,10 +7,16 @@ require 'optparse'
 require 'nkf'
 require 'date'
 
-SMTP_SERVER_ADDRESS = 'seishin-kan.sakura.ne.jp'
-SMTP_SERVER_PORT = 587
-SMTP_DOMAIN = 'seishin-kan.com'
-SMTP_ENABLE_TLS = true
+# Load server configuration from 'server.rb' or use deault value.
+begin
+  require_relative('server')
+rescue LoadError
+  SMTP_SERVER_ADDRESS = 'seishin-kan.sakura.ne.jp'
+  SMTP_SERVER_PORT = 587
+  SMTP_DOMAIN = 'seishin-kan.com'
+  SMTP_ENABLE_TLS = true
+end
+
 TEST_FORMAT = false
 
 address_csv = 'Address.csv'
