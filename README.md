@@ -65,13 +65,23 @@ Syntax: `ExportGS2CSV.rb -f $FILE_ID -o $OUTPUT_CSV`
 * `$FILE_ID`: the file ID for the google spreadsheet.
 * `$OUTPUT_CSV`: the output filename, in this case `Address.csv` is recommended.
 
-### Preparation to run the script
+### Preparation to run the script - Authentication of Script.
+
+The script is expecting to use OAuth 2.0 for authentication.
 
 1. Please retrieve `credentials.json` from Google and place it on the folder where you run the script.
-    Please refer: https://developers.google.com/drive/api/v3/quickstart/ruby
-	and follow the step `ENABLE THE DRIVE API` to retrieve the JSON file.
+	1. Easiest way is to reuse project for Drive API Quickstart.
+	   Please refer: https://developers.google.com/drive/api/v3/quickstart/ruby
+	   and follow the step `ENABLE THE DRIVE API` to retrieve the JSON file.
+	1. Othewise, create (or use existing) project which has access to Google Drive API.
 1. Executed this script on your folder.
-1. Follow the instruction of this script. Usually it requests you to access specific URI and paste Authentication String to the script.
+1. Follow the instruction of this script. Usually it requests you to access specific URI to allow access.
+   At final part of the Authentication, you'll get Refresh Token.
+   Please paste Refresh Token to the script console.
+   The Token is stored as `token.yaml` in the execution folder.
+
+After you run this script once, authentication is stored in the file `token.yaml`
+and you will not be required to perform authentication any more.
 
 ### Note about ExportGS2CSV.rb
 

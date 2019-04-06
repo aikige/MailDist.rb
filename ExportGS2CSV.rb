@@ -7,7 +7,7 @@ require 'fileutils'
 require 'optparse'
 
 OOB_URI = 'urn:ietf:wg:oauth:2.0:oob'.freeze
-APPLICATION_NAME = 'Drive API Ruby Quickstart'.freeze
+APPLICATION_NAME = 'Export Spreadsheet as CSV'.freeze
 CREDENTIALS_PATH = 'credentials.json'.freeze
 # The file token.yaml stores the user's access and refresh tokens, and is
 # created automatically when the authorization flow completes for the first
