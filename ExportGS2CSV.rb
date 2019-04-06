@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-#
 
 require 'google/apis/drive_v3'
 require 'googleauth'
