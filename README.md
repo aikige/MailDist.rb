@@ -56,3 +56,24 @@ This file needs *Range* field.
 |hoge@hoge.com|hogehoge|piyopiyo|1|
 |fuga@hoge.com|fugafuga|piyohoge|2|
 
+### Retrieve Address.csv from Google Drive (Spreadsheet)
+
+The script `ExportGS2CSV.rb` allow you to download Address.csv from Google Spreadsheet.
+
+Syntax: `ExportGS2CSV.rb -f $FILE_ID -o $OUTPUT_CSV`
+
+* `$FILE_ID`: the file ID for the google spreadsheet.
+* `$OUTPUT_CSV`: the output filename, in this case `Address.csv` is recommended.
+
+#### Preparation to run the script
+
+1. Please retrieve `credentials.json` from Google and place it on the folder where you run the script.
+    Please refer: https://developers.google.com/drive/api/v3/quickstart/ruby
+	and follow the step `ENABLE THE DRIVE API` to retrieve the JSON file.
+1. Executed this script on your folder.
+1. Follow the instruction of this script. Usually it requests you to access specific URI and paste Authentication String to the script.
+
+#### Note
+
+This scripts request you to provide read-only file access to your google drive.
+Please be careful.
