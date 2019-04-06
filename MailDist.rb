@@ -119,6 +119,14 @@ p.each do |e|
   uid_to_pass[e['UID']] = e['Password']
 end
 
+# Prompt before send.
+STDERR.print('Are you sure to send? (y/n)> ')
+ans = gets
+unless ans.downcase.include?('y')
+  STDERR.puts('quit...')
+  exit
+end
+
 # Send message to all user listed in CSV.
 database = CSV.read(address_csv, headers: true)
 database.each do |usr|
