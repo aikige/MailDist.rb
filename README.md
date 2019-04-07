@@ -74,7 +74,7 @@ The script is expecting to use OAuth 2.0 for authentication.
 	   Please refer: https://developers.google.com/drive/api/v3/quickstart/ruby
 	   and follow the step `ENABLE THE DRIVE API` to retrieve the JSON file.
 	1. Othewise, create (or use existing) project which has access to Google Drive API.
-1. Executed this script on your folder.
+1. Execute this script on your working folder.
 1. Follow the instruction of this script. Usually it requests you to access specific URI to allow access.
    At final part of the Authentication, you'll get Refresh Token.
    Please paste Refresh Token to the script console.
