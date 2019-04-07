@@ -13,7 +13,9 @@ CREDENTIALS_PATH = 'credentials.json'.freeze
 # created automatically when the authorization flow completes for the first
 # time.
 TOKEN_PATH = 'token.yaml'.freeze
+#SCOPE = Google::Apis::DriveV3::AUTH_DRIVE_FILE
 SCOPE = Google::Apis::DriveV3::AUTH_DRIVE_READONLY
+# Note: AUTH_DRIVE_READONLY should be selected if the source file is not created by this script.
 
 ##
 # Ensure valid credentials, either by restoring from the saved credentials
@@ -29,7 +31,7 @@ def authorize
   credentials = authorizer.get_credentials(user_id)
   if credentials.nil?
     url = authorizer.get_authorization_url(base_url: OOB_URI)
-    puts 'Open the following URL in the browser and enter the '          "resulting code after authorization:\n" + url
+    puts "Open the following URL in the browser and enter the resulting code after authorization:\n" + url
     code = gets
     credentials = authorizer.get_and_store_credentials_from_code(
       user_id: user_id, code: code, base_url: OOB_URI
@@ -39,7 +41,7 @@ def authorize
 end
 
 file_id = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-output_fn = 'Output.csv'
+output_fn = 'Address.csv'
 
 opt = OptionParser.new
 opt.on('-o FILE', '--output=FILE', "Set output file . (default: #{output_fn})") { |v| output_fn = v }
