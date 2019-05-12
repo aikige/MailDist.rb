@@ -145,7 +145,7 @@ database.each do |usr|
   end
 
   # Check flag and skip if needed.
-  unless usr['Flag'].include?('send') then
+  if usr['Flag'].nil? or !(usr['Flag'].include?('send')) then
     show_log("Skip #{usr['Name']}:#{usr['Flag']}")
     next
   end
