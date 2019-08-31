@@ -71,7 +71,7 @@ Format of the CSV file is like this:
 |xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|text/csv|Address.csv|
 
 In this case, this script tries to acccess Google Drive,
-open file which has ID=`xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
+open file which has ID=`xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`,
 and export it to the file `Address.csv` using `text/csv` format.
 
 ### Preparation to run the script - Authentication of Script.
