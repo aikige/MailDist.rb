@@ -24,7 +24,7 @@ password_file = 'Password.txt'
 password_csv = 'Password.csv'
 message_file = 'Message.txt'
 log_file = "#{Date.today.strftime('%Y%m%d')}.log"
-attach_file = nil
+attach_files = Array.new
 flag = nil
 
 def show_log(str)
@@ -58,18 +58,20 @@ def attach_file2(mail, attach_file)
   return mail
 end
 
-def send_mail(from, to, subject, body, uid, passwd, attach_file)
+def send_mail(from, to, subject, body, uid, passwd, attach_files)
   mail = Mail.new(:charset => 'ISO-2022-JP')
   mail.from(from)
   mail.to(to)
   mail.subject(subject)
-  unless attach_file.nil? then
+  if attach_files.size > 0 then
     # Create multipart/mixed style.
     part = Mail::Part.new
 #    part.content_type('text/plain; charset=iso-2022-jp') # Should not do this!
     part.body(body)
     mail.text_part = part
-    mail = attach_file1(mail, attach_file)
+    attach_files.each { |file|
+      mail = attach_file1(mail, file)
+    }
   else
     # Single part. Just add body.
     mail.body(body)
@@ -78,9 +80,10 @@ def send_mail(from, to, subject, body, uid, passwd, attach_file)
     :address => SMTP_SERVER_ADDRESS,
     :port => SMTP_SERVER_PORT,
     :domain => SMTP_DOMAIN,
+    :authentication => :login,
+    :enable_starttls_auto => SMTP_ENABLE_TLS,
     :user_name => uid,
-    :password => passwd,
-    :tsl => SMTP_ENABLE_TLS
+    :password => passwd
   }
   puts mail.to_s if TEST_FORMAT == true
   mail.delivery_method(:smtp, options)
@@ -95,7 +98,7 @@ opt.on('-m FILE', '--message=FILE', "Set message file. (default: #{message_file}
 opt.on('-p FILE', '--password=FILE', "Set password file. (default: #{password_csv})") { |v| password_csv = v }
 opt.on('-c FILE', '--contacts=FILE',
   "Set contact list (address book). File shall be CSV format. (default: #{address_csv})") { |v| address_csv = v }
-opt.on('-a FILE', '--attachment=FILE', 'Add attachment file.') { |v| attach_file = v }
+opt.on('-a FILE', '--attachment=FILE', 'Add attachment file.') { |v| attach_files.push(v) }
 opt.on('-f FLAG', '--flag=FLAG', 'Set flag to select user.') { |v| flag = v }
 opt.parse!(ARGV)
 
@@ -103,7 +106,7 @@ opt.parse!(ARGV)
 $stdout = File.open(log_file, "a")
 
 # Retrieve message subject and body.
-f = File.open(message_file)
+f = File.open(message_file, 'r:BOM|UTF-8')
 subject=f.gets.chomp
 body=f.read
 f.close
@@ -160,7 +163,7 @@ database.each do |usr|
     next
   end
 
-  send_mail(from, usr['Address'], subject, body, uid, passwd, attach_file)
+  send_mail(from, usr['Address'], subject, body, uid, passwd, attach_files)
 end
 show_log('Finish!')
 

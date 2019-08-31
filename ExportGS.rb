@@ -4,6 +4,7 @@ require 'google/apis/drive_v3'
 require 'googleauth'
 require 'googleauth/stores/file_token_store'
 require 'fileutils'
+require 'csv'
 require 'optparse'
 
 OOB_URI = 'urn:ietf:wg:oauth:2.0:oob'.freeze
@@ -40,20 +41,26 @@ def authorize
   credentials
 end
 
-file_id = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-output_fn = 'Address.csv'
+def is_valid(dat)
+	return false if dat['ID'].nil? or dat['Type'].nil? or dat['Filename'].nil?
+	return true
+end
+
+config_fn = 'Files.csv'
 
 opt = OptionParser.new
-opt.on('-o FILE', '--output=FILE', "Set output file . (default: #{output_fn})") { |v| output_fn = v }
-opt.on('-f FILE', '--file-id=FILE', "Set file id. (default: #{file_id})") { |v| file_id = v }
+opt.on('-c FILE', '--config=FILE', "Set configuration file . (default: #{config_fn})") { |v|
+	config_fn = v
+}
 opt.parse!(ARGV)
 
-p file_id
-p output_fn
+config_db = CSV.read(config_fn, headers: true)
 
 # Initialize the API
 drive_service = Google::Apis::DriveV3::DriveService.new
 drive_service.client_options.application_name = APPLICATION_NAME
 drive_service.authorization = authorize
 
-result = drive_service.export_file(file_id, 'text/csv', download_dest: output_fn)
+config_db.each { |obj|
+	result = drive_service.export_file(obj['ID'], obj['Type'], download_dest: obj['Filename']) if is_valid(obj)
+}
