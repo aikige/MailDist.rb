@@ -20,7 +20,6 @@ end
 TEST_FORMAT = false
 
 address_csv = 'Address.csv'
-password_file = 'Password.txt'
 password_csv = 'Password.csv'
 message_file = 'Message.txt'
 log_file = "#{Date.today.strftime('%Y%m%d')}.log"
@@ -123,6 +122,10 @@ p.each do |e|
 end
 
 # Prompt before send.
+STDERR.puts('message: ' + message_file);
+STDERR.puts('address: ' + address_csv);
+STDERR.puts('password: ' + password_csv);
+STDERR.puts('attachment: ' + attach_files.to_s) if (attach_files.size > 0)
 STDERR.print('Are you sure to send? (y/n)> ')
 ans = gets
 unless ans.downcase.include?('y')
