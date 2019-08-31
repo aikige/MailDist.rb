@@ -60,10 +60,19 @@ This file needs *Range* field.
 
 The script `ExportGS2CSV.rb` allow you to download Address.csv from Google Spreadsheet.
 
-Syntax: `ExportGS2CSV.rb -f $FILE_ID -o $OUTPUT_CSV`
+Syntax: `ExportGS2CSV.rb -c $CONFIG_CSV`
 
-* `$FILE_ID`: the file ID for the google spreadsheet.
-* `$OUTPUT_CSV`: the output filename, in this case `Address.csv` is recommended.
+* `$CONFIG_CSV`: file provides mapping of file-id in Google Drive, expected export type, and file-name used for exported data.
+
+Format of the CSV file is like this:
+
+|ID|Type|Filename|
+|--|----|--------|
+|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|text/csv|Address.csv|
+
+In this case, this script tries to acccess Google Drive,
+open file which has ID=`xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
+and export it to the file `Address.csv` using `text/csv` format.
 
 ### Preparation to run the script - Authentication of Script.
 
@@ -83,7 +92,7 @@ The script is expecting to use OAuth 2.0 for authentication.
 After you run this script once, authentication is stored in the file `token.yaml`
 and you will not be required to perform authentication any more.
 
-### Note about ExportGS2CSV.rb
+### Note about ExportGS.rb
 
 This scripts request you to provide read-only file access to your google drive.
 Please be careful.
