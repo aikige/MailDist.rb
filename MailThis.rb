@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
-#require 'mail'
-require 'mail-iso-2022-jp'
+require 'mail'
 
 begin
   require_relative('config')
@@ -19,6 +18,11 @@ end
 class MailObject
   attr_reader :subject, :to, :body
   def initialize(filename)
+    if (filename =~ /.html*$/)
+      @html = true
+    else
+      @html = false
+    end
 	File.open(filename) { |f|
 	  loop do
 		l = f.gets.chomp
@@ -35,11 +39,33 @@ class MailObject
 	}
   end
   def send
-	mail = Mail.new(:charset => CHARSET)
-	mail.from(FROM_ADDRESS)
-	mail.to(@to)
-	mail.subject(@subject)
-	mail.body(@body)
+    if (@html == true)
+      # For HTML, always use UTF-8 as charset.
+	  mail = Mail.new
+      mail.charset = 'UTF-8'
+      mail.to(@to)
+      mail.from(FROM_ADDRESS)
+      mail.subject(@subject)
+      text_part = Mail::Part.new
+      text_part.content_type("text/plain; charset=UTF-8")
+      text_part.body(@body.gsub(%r{</?[^>]+?>}, ''))
+      html_part = Mail::Part.new
+      html_part.content_type("text/html; charset=UTF-8")
+      html_part.body(@body)
+      mail.text_part = text_part
+      mail.html_part = html_part
+    else
+	  mail = Mail.new
+      mail.charset = CHARSET
+      mail.to(@to)
+      mail.from(FROM_ADDRESS)
+      mail.subject(@subject)
+      if (CHARSET.upcase == 'ISO-2022-JP')
+        mail.content_transfer_encoding = '7bit'
+      end
+	  mail.body(@body)
+    end
+
 	opt = {
 	  :address => SMTP_SERVER_ADDRESS,
 	  :port => SMTP_SERVER_PORT,
