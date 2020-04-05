@@ -7,7 +7,6 @@ begin
 rescue LoadError
   SMTP_SERVER_ADDRESS = 'smtp.gmail.com'
   SMTP_SERVER_PORT = 587
-  SMTP_DOMAIN = 'gmail.com'
   SMTP_ENABLE_TLS = true
   SMTP_USER_NAME = 'sample@gmal.com'
   SMTP_PASS = 'xxxxxxxxxxxxxx'
@@ -70,15 +69,14 @@ class MailObject
 	opt = {
 	  :address => SMTP_SERVER_ADDRESS,
 	  :port => SMTP_SERVER_PORT,
-	  :domain => SMTP_DOMAIN,
 	  :authentication => :login,
-	  :enable_starttls_auto => true
+	  :enable_starttls_auto => true,
 	  :user_name => SMTP_USER_NAME,
 	  :password => SMTP_PASS,
 	}
 	mail.delivery_method(:smtp, opt)
-	#mail.deliver!
-	puts mail.to_s
+	mail.deliver!
+	#puts mail.to_s
   end
   def to_s
 	"body=#{@body},subject=#{@subject},to=#{@to}"
