@@ -43,47 +43,48 @@ class MailObject
       # For HTML, always use UTF-8 as charset.
 	  mail = Mail.new
       mail.charset = 'UTF-8'
-      mail.to(@to)
-      mail.from(FROM_ADDRESS)
-      mail.subject(@subject)
+      mail.to = @to
+      mail.from = FROM_ADDRESS
+      mail.subject = @subject
       text_part = Mail::Part.new
-      text_part.content_type("text/plain; charset=UTF-8")
-      text_part.body(@body.gsub(%r{</?[^>]+?>}, ''))
+      text_part.content_type = "text/plain; charset=UTF-8"
+      text_part.body = @body.gsub(%r{</?[^>]+?>}, '')
       html_part = Mail::Part.new
-      html_part.content_type("text/html; charset=UTF-8")
-      html_part.body(@body)
+      html_part.content_type = "text/html; charset=UTF-8"
+      html_part.body = @body
       mail.text_part = text_part
       mail.html_part = html_part
     else
 	  mail = Mail.new
       mail.charset = CHARSET
-      mail.to(@to)
-      mail.from(FROM_ADDRESS)
-      mail.subject(@subject)
+      mail.to = @to
+      mail.from = FROM_ADDRESS
+      mail.subject = @subject
       if (CHARSET.upcase == 'ISO-2022-JP')
+        # Special handling for ISO-2022-JP encoding.
         mail.content_transfer_encoding = '7bit'
       end
-	  mail.body(@body)
+	  mail.body = @body
     end
 
 	opt = {
 	  :address => SMTP_SERVER_ADDRESS,
 	  :port => SMTP_SERVER_PORT,
 	  :domain => SMTP_DOMAIN,
-	  :user_name => SMTP_USER_NAME,
-	  :password => SMTP_PASS,
 	  :authentication => :login,
 	  :enable_starttls_auto => true
+	  :user_name => SMTP_USER_NAME,
+	  :password => SMTP_PASS,
 	}
 	mail.delivery_method(:smtp, opt)
-	mail.deliver!
-	#puts mail.to_s
+	#mail.deliver!
+	puts mail.to_s
   end
   def to_s
 	"body=#{@body},subject=#{@subject},to=#{@to}"
   end
 end
 
-m = MailObject.new(ARGV[0])
+m = MailObject.new(ARGV.shift)
 p m.to_s
 m.send
