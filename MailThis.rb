@@ -16,6 +16,7 @@ end
 
 class MailObject
   attr_reader :subject, :to, :body
+
   def initialize(filename)
     if (filename =~ /.html*$/)
       @html = true
@@ -35,35 +36,38 @@ class MailObject
 		end
 	  end
 	  @body = f.read
+      @attachments = Array.new
 	}
   end
+
+  def add_attachment(file)
+    @attachments.push(file)
+  end
+
   def send
+    # Common part.
+    @mail = Mail.new
+    @mail.charset = CHARSET
+    @mail.to = @to
+    @mail.from = FROM_ADDRESS
+    @mail.subject = @subject
+    @mail.charset = CHARSET
+    if (CHARSET.upcase == 'ISO-2022-JP')
+      # Special handling for ISO-2022-JP encoding.
+      @mail.content_transfer_encoding = '7bit'
+    end
+    # Add format dependent body.
     if (@html == true)
-      # For HTML, always use UTF-8 as charset.
-	  mail = Mail.new
-      mail.charset = 'UTF-8'
-      mail.to = @to
-      mail.from = FROM_ADDRESS
-      mail.subject = @subject
-      text_part = Mail::Part.new
-      text_part.content_type = "text/plain; charset=UTF-8"
-      text_part.body = @body.gsub(%r{</?[^>]+?>}, '')
-      html_part = Mail::Part.new
-      html_part.content_type = "text/html; charset=UTF-8"
-      html_part.body = @body
-      mail.text_part = text_part
-      mail.html_part = html_part
+      encode_text_part(@body.gsub(%r{</?[^>]+?>}, ''))
+      encode_html_part(@body)
+    elsif (@attachments.size > 0)
+      encode_text_part(@body)
     else
-	  mail = Mail.new
-      mail.charset = CHARSET
-      mail.to = @to
-      mail.from = FROM_ADDRESS
-      mail.subject = @subject
-      if (CHARSET.upcase == 'ISO-2022-JP')
-        # Special handling for ISO-2022-JP encoding.
-        mail.content_transfer_encoding = '7bit'
-      end
-	  mail.body = @body
+	  @mail.body = @body
+    end
+    # Add attachments.
+    @attachments.each do |f|
+      encode_attachment(f)
     end
 
 	opt = {
@@ -74,15 +78,48 @@ class MailObject
 	  :user_name => SMTP_USER_NAME,
 	  :password => SMTP_PASS,
 	}
-	mail.delivery_method(:smtp, opt)
-	mail.deliver!
-	#puts mail.to_s
+	@mail.delivery_method(:smtp, opt)
+
+    debug = false
+    unless debug
+	  mail.deliver!
+    else
+	  puts @mail.to_s
+    end
   end
+
   def to_s
 	"body=#{@body},subject=#{@subject},to=#{@to}"
+  end
+
+  private
+
+  def encode_text_part(body)
+    text_part = Mail::Part.new
+    text_part.content_type = "text/plain;charset=#{CHARSET}"
+    if (CHARSET.upcase == 'ISO-2022-JP')
+      # Special handling for ISO-2022-JP encoding.
+      text_part.content_transfer_encoding = '7bit'
+    end
+    text_part.body = @body.gsub(%r{</?[^>]+?>}, '')
+    @mail.text_part = text_part
+  end
+
+  def encode_html_part(body)
+    html_part = Mail::Part.new
+    html_part.content_type = "text/html;charset=UTF-8"
+    html_part.body = @body
+    @mail.html_part = html_part
+  end
+
+  def encode_attachment(file)
+    @mail.add_file(file)
   end
 end
 
 m = MailObject.new(ARGV.shift)
+while f = ARGV.shift do
+  m.add_attachment(f)
+end
 p m.to_s
 m.send
