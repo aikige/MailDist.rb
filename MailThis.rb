@@ -23,7 +23,7 @@ EOS
 end
 
 class MailThis
-  attr_writer :from, :password, :user_name, :to, :cc, :subject
+  attr_writer :from, :password, :user_name, :to, :cc, :subject, :log
 
   def initialize(filename)
     if (filename =~ /.html*$/)
@@ -52,13 +52,61 @@ class MailThis
     @user_name = SMTP_USER_NAME
     @password = SMTP_PASS
     @attachments = Array.new
+    @log = nil
   end
 
   def add_attachment(file)
     @attachments.push(file)
   end
 
-  def send
+  def send(is_new = true)
+    # Common part.
+    if is_new
+      encode_message
+    else
+      if @mail.nil?
+        encode_message
+      else
+        # Update To, Cc and From.
+        @mail.to = @to unless @to.nil?
+        @mail.cc = @cc unless @cc.nil?
+        @mail.from = @from
+        # Trick to update Message-ID field.
+        @mail.add_message_id
+      end
+    end
+
+	opt = {
+	  :address => SMTP_SERVER_ADDRESS,
+	  :port => SMTP_SERVER_PORT,
+	  :authentication => :login,
+	  :enable_starttls_auto => SMTP_ENABLE_TLS,
+	  :user_name => @user_name,
+	  :password => @password,
+	}
+	@mail.delivery_method(:smtp, opt)
+
+    unless DEBUG
+      show_log("Sending from #{@from.to_s} to #{@to.to_s}...")
+	  mail.deliver!
+      show_log('Done!')
+    else
+	  show_log(@mail.to_s)
+    end
+  end
+
+  def to_s
+	"body=#{@body},subject=#{@subject},to=#{@to}"
+  end
+
+  private
+
+  def show_log(str)
+    @log.puts(str) unless @log.nil?
+    STDERR.puts(str)
+  end
+
+  def encode_message
     # Common part.
     @mail = Mail.new
     @mail.charset = @charset
@@ -83,29 +131,7 @@ class MailThis
     @attachments.each do |f|
       encode_attachment(f)
     end
-
-	opt = {
-	  :address => SMTP_SERVER_ADDRESS,
-	  :port => SMTP_SERVER_PORT,
-	  :authentication => :login,
-	  :enable_starttls_auto => SMTP_ENABLE_TLS,
-	  :user_name => @user_name,
-	  :password => @password,
-	}
-	@mail.delivery_method(:smtp, opt)
-
-    unless DEBUG
-	  mail.deliver!
-    else
-	  puts @mail.to_s
-    end
   end
-
-  def to_s
-	"body=#{@body},subject=#{@subject},to=#{@to}"
-  end
-
-  private
 
   def remove_html_tag(str)
     str.gsub(%r{</?[^>]+?>}, '')
