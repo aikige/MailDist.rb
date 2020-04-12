@@ -24,7 +24,7 @@ Message body.
 ```
 
 1. The input file shall be encoded by UTF-8.
-1. Message should include header part which gives `To` header and `Subject` header used by E-mail, and optionally include 'Cc' header.
+1. Message should include header part which gives `To` header and `Subject` header used by E-mail, and optionally include `Cc` header.
 1. Header part and Body part is separated by null-line.
 
 If you want to send HTML formatted E-mail, please use '.html' extension for the filename.
