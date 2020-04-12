@@ -86,7 +86,7 @@ class MailThis
 	}
 	@mail.delivery_method(:smtp, opt)
 
-    debug = true
+    debug = false
     unless debug
 	  mail.deliver!
     else
