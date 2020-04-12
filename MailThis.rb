@@ -1,6 +1,9 @@
 #!/usr/bin/env ruby
 
 require 'mail'
+require 'mime/types'
+require 'base64'
+require 'nkf'
 
 begin
   require_relative('config')
@@ -20,6 +23,8 @@ EOS
 end
 
 class MailThis
+  attr_writer :from, :password, :user_name, :to, :cc, :subject
+
   def initialize(filename)
     if (filename =~ /.html*$/)
       @html = true
@@ -42,6 +47,10 @@ class MailThis
 	  end
 	  @body = f.read
 	}
+    @charset = CHARSET
+    @from = FROM_ADDRESS
+    @user_name = SMTP_USER_NAME
+    @password = SMTP_PASS
     @attachments = Array.new
   end
 
@@ -52,12 +61,11 @@ class MailThis
   def send
     # Common part.
     @mail = Mail.new
-    @mail.charset = CHARSET
+    @mail.charset = @charset
     @mail.to = @to unless @to.nil?
     @mail.cc = @cc unless @cc.nil?
-    @mail.from = FROM_ADDRESS
+    @mail.from = @from
     @mail.subject = @subject unless @subject.nil?
-    @mail.charset = CHARSET
     if (CHARSET.upcase == 'ISO-2022-JP')
       # Special handling for ISO-2022-JP encoding.
       @mail.content_transfer_encoding = '7bit'
@@ -80,14 +88,13 @@ class MailThis
 	  :address => SMTP_SERVER_ADDRESS,
 	  :port => SMTP_SERVER_PORT,
 	  :authentication => :login,
-	  :enable_starttls_auto => true,
-	  :user_name => SMTP_USER_NAME,
-	  :password => SMTP_PASS,
+	  :enable_starttls_auto => SMTP_ENABLE_TLS,
+	  :user_name => @user_name,
+	  :password => @password,
 	}
 	@mail.delivery_method(:smtp, opt)
 
-    debug = false
-    unless debug
+    unless DEBUG
 	  mail.deliver!
     else
 	  puts @mail.to_s
@@ -122,8 +129,26 @@ class MailThis
     @mail.html_part = html_part
   end
 
-  def encode_attachment(file)
+  def encode_attachment_unused(file)
+    # Note: do not use this since text encoding will not work.
     @mail.add_file(file)
+  end
+
+  def encode_attachment(file)
+    body = File.binread(file)
+    type = MIME::Types.type_for(file)[0].to_s
+    if type =~ /text\/.*/ then
+      # Note: workaround - Mail tend to add 'charset=UTF8' for
+      # the text files without checking actual charset of the file.
+      # So, this script puts type manually.
+      # NKF gives better suggestion than String::encoding
+      type += ";charset=#{NKF.guess(body).to_s}"
+    end
+    @mail.attachments[file] = {
+      :content_type => type,
+      :content_transfer_encoding => 'base64',
+      :content => Base64.encode64(body),
+    }
   end
 end
 
