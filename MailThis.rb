@@ -5,8 +5,12 @@ require 'mime/types'
 require 'base64'
 require 'nkf'
 
+# Add script directory and current directory in Load Path.
+$LOAD_PATH.unshift(File.dirname(File.expand_path(__FILE__)))
+$LOAD_PATH.unshift(Dir.pwd)
+
 begin
-  require_relative('config')
+  require('config')
 rescue LoadError
   puts <<EOS
 Plese create "config.rb", which contains following constants.
@@ -48,9 +52,9 @@ class MailThis
 	  @body = f.read
 	}
     @charset = CHARSET
-    @from = FROM_ADDRESS
-    @user_name = SMTP_USER_NAME
-    @password = SMTP_PASS
+    @from = FROM_ADDRESS if defined?(FROM_ADDRESS)
+    @user_name = SMTP_USER_NAME if defined?(SMTP_USER_NAME)
+    @password = SMTP_PASS if defined?(SMTP_PASS)
     @attachments = Array.new
     @log = nil
   end
@@ -60,7 +64,12 @@ class MailThis
   end
 
   def send(is_new = true)
-    # Common part.
+    raise "no @from" if @from.nil?
+    raise "no @to" if @to.nil?
+    raise "no @subject" if @subject.nil?
+    raise "no @user_name" if @user_name.nil?
+    raise "no @password" if @password.nil?
+
     if is_new
       encode_message
     else

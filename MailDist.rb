@@ -47,9 +47,10 @@ p.each do |e|
 end
 
 # Prompt before send.
-show_log('message: ' + message_file);
-show_log('address: ' + address_csv);
-show_log('password: ' + password_csv);
+show_log('server: ' + SMTP_SERVER_ADDRESS)
+show_log('message: ' + message_file)
+show_log('address: ' + address_csv)
+show_log('password: ' + password_csv)
 show_log('attachment: ' + attach_files.to_s) if (attach_files.size > 0)
 show_log('Are you sure to send? (y/n)> ', true)
 ans = gets
