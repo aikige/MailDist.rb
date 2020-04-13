@@ -9,6 +9,7 @@ require 'nkf'
 $LOAD_PATH.unshift(File.dirname(File.expand_path(__FILE__)))
 $LOAD_PATH.unshift(Dir.pwd)
 
+# Load configuration file.
 begin
   require('config')
 rescue LoadError
