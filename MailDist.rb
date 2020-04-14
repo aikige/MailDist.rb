@@ -39,8 +39,8 @@ $stdout = File.open(log_file, "a")
 range_to_addr = Hash.new
 addr_to_uid = Hash.new
 uid_to_pass = Hash.new
-p = CSV.read(password_csv, headers: true)
-p.each do |e|
+pdb = CSV.read(password_csv, headers: true)
+pdb.each do |e|
   range_to_addr[e['Range']] = e['Address'] unless e['Range'].nil?
   addr_to_uid[e['Address']] = e['UID']
   uid_to_pass[e['UID']] = e['Password']
@@ -107,4 +107,4 @@ end
 
 show_log('Finish!')
 
-# vim: sts=2 sw=2 et
+# vim: sts=2 sw=2 et nowrap

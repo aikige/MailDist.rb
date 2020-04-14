@@ -64,26 +64,25 @@ class MailThis
     @attachments.push(file)
   end
 
-  def send(is_new = true)
+  def send(from_scratch = true)
+    # Check necessary fields.
     raise "no @from" if @from.nil?
     raise "no @to" if @to.nil?
     raise "no @subject" if @subject.nil?
     raise "no @user_name" if @user_name.nil?
     raise "no @password" if @password.nil?
 
-    if is_new
+    @mail = nil if from_scratch
+
+    if @mail.nil?
       encode_message
-    else
-      if @mail.nil?
-        encode_message
-      else
-        # Update To, Cc and From.
-        @mail.to = @to unless @to.nil?
-        @mail.cc = @cc unless @cc.nil?
-        @mail.from = @from
-        # Trick to update Message-ID field.
-        @mail.add_message_id
-      end
+    else  # Reuse existing @mail object.
+      # Update To, Cc and From.
+      @mail.to = @to unless @to.nil?
+      @mail.cc = @cc unless @cc.nil?
+      @mail.from = @from
+      # Trick to update Message-ID field.
+      @mail.add_message_id
     end
 
 	opt = {
@@ -96,12 +95,12 @@ class MailThis
 	}
 	@mail.delivery_method(:smtp, opt)
 
-    unless DEBUG
+    if defined?(DEBUG) and DEBUG
+	  show_log(@mail.to_s)
+    else
       show_log("Sending from #{@from.to_s} to #{@to.to_s}...")
 	  mail.deliver!
       show_log('Done!')
-    else
-	  show_log(@mail.to_s)
     end
   end
 

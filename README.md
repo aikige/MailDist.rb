@@ -1,16 +1,24 @@
-# MailThis.rb
+# `MailThis.rb`
 
 A simple ruby script to send text message.
 
 ## Getting Started
 
 1. Please prepare following items:
-	1. config.rb - configuration file which gives server information, including password.
+	1. `config.rb` - configuration file which gives server information, including password.
 	1. Any message text, which is using UTF-8 as file encoding (*.txt or *.html)
-1. Executed script <br />
-	`./MailThis.rb FILENAME(s)`
-	* If you specify multiple filename, 2nd or succeeding files are treated as attachment file.
+1. Executed script.
 1. Then you'll get E-mail sent.
+
+## Synopsis
+
+```
+MailThis.rb FILENAME(s)
+```
+
+* The first file is used as header and body generation.
+  For detail, plese check [Message format](#message-format) below.
+* If you specify multiple filename, 2nd or succeeding files are treated as attachment file.
 
 ## Message format
 
@@ -18,7 +26,7 @@ The message format is as follows
 
 ```
 to: sample@example.com
-subject: subject.
+subject: sample subject
 
 Message body.
 ```
@@ -29,3 +37,28 @@ Message body.
 
 If you want to send HTML formatted E-mail, please use '.html' extension for the filename.
 The script determines input data format between `text/plain` and `text/html` based on extension.
+
+## Configuration file (`config.rb`) format
+
+`config.rb` is simple ruby script which sets several constants which is used by `MailThis.rb`
+
+For example, in the case of Gmail:
+
+```
+SMTP_SERVER_ADDRESS = 'smtp.gmail.com'
+SMTP_SERVER_PORT = 587
+SMTP_ENABLE_TLS = true
+SMTP_USER_NAME = 'example@gmail.com'
+SMTP_PASS = 'xxxxxxxx'
+FROM_ADDRESS = SMTP_USER_NAME
+CHARSET = 'ISO-2022-JP'
+DEBUG = true
+```
+
+## Sample to use `MailThis.rb` as module - `MailDist.rb`
+
+`MailThis.rb` can be used as module, and `MailDist.rb` provides example how to use it.
+
+This script can be used to distribute E-mail based on address list `Address.csv`.
+
+For detail about `MailDist.rb`, please check [`MailDist.md`](MailDist.md).
