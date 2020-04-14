@@ -1,98 +1,64 @@
-# MailDist
+# `MailThis.rb`
 
-Simple ruby script to distribute E-mail.
+A simple ruby script to send text message.
 
-## Getting started
+## Getting Started
 
-1. Please place following items.
-	1. Address.csv
-	1. Password.csv
-	1. Message.txt
-1. Run MailDist.rb
-1. Then the script distributes contents written in Message.txt to addresses written in Address.csv using account information written in Password.csv.
+1. Please prepare following items:
+	1. `config.rb` - configuration file which gives server information, including password.
+	1. Any message text, which is using UTF-8 as file encoding (*.txt or *.html)
+1. Executed script.
+1. Then you'll get E-mail sent.
 
-## Options
+## Synopsis
 
-* -m FILE / --message=FILE: specify name of Message file. By default `Message.txt` is used.
-* -p FILE / --password=FILE: specify name of Password CSV file. By default, `Password.csv` is used.
-* -c FILE / --contacts=FILE: specify name of Contract list CSV file. By default, `Address.csv` is used.
-* -a FILE / --attachment=FILE: if this option is used, read file and attach it to the E-mail.
+```
+MailThis.rb FILENAME(s)
+```
 
-## Message Format
+* The first file is used as header and body generation.
+  For detail, plese check [Message format](#message-format) below.
+* If you specify multiple filename, 2nd or succeeding files are treated as attachment file.
 
-1st line of the `Message.txt` is used as Subject of the E-mail.
+## Message format
 
-## CSV format
+The message format is as follows
 
-### Address.csv
+```
+to: sample@example.com
+subject: sample subject
 
-CSV file should include either of following format.
+Message body.
+```
 
-Note: title row is needed.
+1. The input file shall be encoded by UTF-8.
+1. Message should include header part which gives `To` header and `Subject` header used by E-mail, and optionally include `Cc` header.
+1. Header part and Body part is separated by null-line.
 
-|Name|From|Flag|Address|Flag|
-|----|----|----|-------|----|
-|Name of destination|address used in from field|send|address@of.distination|send|
+If you want to send HTML formatted E-mail, please use '.html' extension for the filename.
+The script determines input data format between `text/plain` and `text/html` based on extension.
 
-|Name|Range|Flag|Address|Flag|
-|----|-----|----|-------|----|
-|Name of destination|Range_ID|send|address@of.distination|send|
+## Configuration file (`config.rb`) format
 
-In the 2nd format, user can specify *FROM* field using *Range_ID*, this *Range_ID* should be written in Password.csv in this case.
+`config.rb` is simple ruby script which sets several constants which is used by `MailThis.rb`
 
-### Password.csv
+For example, in the case of Gmail:
 
-This script is expecting that SMTP server requires authentication. `Password.csv` is used to provide authentication information needed to send E-mail using the address.
+```
+SMTP_SERVER_ADDRESS = 'smtp.gmail.com'
+SMTP_SERVER_PORT = 587
+SMTP_ENABLE_TLS = true
+SMTP_USER_NAME = 'example@gmail.com'
+SMTP_PASS = 'xxxxxxxx'
+FROM_ADDRESS = SMTP_USER_NAME
+CHARSET = 'ISO-2022-JP'
+DEBUG = true
+```
 
-|Address|UID|Password|
-|-------|---|--------|
-|hoge@hoge.com|hogehoge|piyopiyo|
+## Sample to use `MailThis.rb` as module - `MailDist.rb`
 
-if you are using *Range_ID* to specify from field.
-This file needs *Range* field.
+`MailThis.rb` can be used as module, and `MailDist.rb` provides example how to use it.
 
-|Address|UID|Password|Range|
-|-------|---|--------|-----|
-|hoge@hoge.com|hogehoge|piyopiyo|1|
-|fuga@hoge.com|fugafuga|piyohoge|2|
+This script can be used to distribute E-mail based on address list `Address.csv`.
 
-## Retrieve Address.csv from Google Drive (Spreadsheet)
-
-The script `ExportGS2CSV.rb` allow you to download Address.csv from Google Spreadsheet.
-
-Syntax: `ExportGS2CSV.rb -c $CONFIG_CSV`
-
-* `$CONFIG_CSV`: file provides mapping of file-id in Google Drive, expected export type, and file-name used for exported data.
-
-Format of the CSV file is like this:
-
-|ID|Type|Filename|
-|--|----|--------|
-|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|text/csv|Address.csv|
-
-In this case, this script tries to acccess Google Drive,
-open file which has ID=`xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`,
-and export it to the file `Address.csv` using `text/csv` format.
-
-### Preparation to run the script - Authentication of Script.
-
-The script is expecting to use OAuth 2.0 for authentication.
-
-1. Please retrieve `credentials.json` from Google and place it on the folder where you run the script.
-	1. Easiest way is to reuse project for Drive API Quickstart.
-	   Please refer: https://developers.google.com/drive/api/v3/quickstart/ruby
-	   and follow the step `ENABLE THE DRIVE API` to retrieve the JSON file.
-	1. Othewise, create (or use existing) project which has access to Google Drive API.
-1. Execute this script on your working folder.
-1. Follow the instruction of this script. Usually it requests you to access specific URI to allow access.
-   At final part of the Authentication, you'll get Refresh Token.
-   Please paste Refresh Token to the script console.
-   The Token is stored as `token.yaml` in the execution folder.
-
-After you run this script once, authentication is stored in the file `token.yaml`
-and you will not be required to perform authentication any more.
-
-### Note about ExportGS.rb
-
-This scripts request you to provide read-only file access to your google drive.
-Please be careful.
+For detail about `MailDist.rb`, please check [`MailDist.md`](MailDist.md).

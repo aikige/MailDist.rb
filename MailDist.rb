@@ -1,23 +1,10 @@
 #!/usr/bin/env ruby
 
-#require 'mail'
-require 'mail-iso-2022-jp'
 require 'csv'
 require 'optparse'
-require 'nkf'
 require 'date'
 
-# Load server configuration from 'server.rb' or use deault value.
-begin
-  require_relative('server')
-rescue LoadError
-  SMTP_SERVER_ADDRESS = 'seishin-kan.sakura.ne.jp'
-  SMTP_SERVER_PORT = 587
-  SMTP_DOMAIN = 'seishin-kan.com'
-  SMTP_ENABLE_TLS = true
-end
-
-TEST_FORMAT = false
+require_relative 'MailThis'
 
 address_csv = 'Address.csv'
 password_csv = 'Password.csv'
@@ -26,69 +13,13 @@ log_file = "#{Date.today.strftime('%Y%m%d')}.log"
 attach_files = Array.new
 flag = nil
 
-def show_log(str)
+def show_log(str, no_newline = false)
   puts(str)
-  STDERR.puts(str)
-end
-
-# Force Base64 encoding for attachment.
-def attach_file1(mail, attach_file)
-  body = File.binread(attach_file)
-  type = MIME::Types.type_for(attach_file)[0].to_s
-  if type =~ /text\/.*/ then
-    # Note: workaround - Mail tend to add 'charset=UTF8' for
-    # the text files without checking actual charset of the file.
-    # So, this script puts type manually.
-    # NKF gives better suggestion than String::encoding
-    type += ";charset=#{NKF.guess(body).to_s}"
-  end
-  mail.attachments[attach_file] = {
-    :content_type => type,
-    :content_transfer_encoding => 'base64',
-    :content => Base64.encode64(body), # Note: need to encode manually.
-  }
-#  p mail.attachments[attach_file]
-  return mail
-end
-
-# Default, but not good.
-def attach_file2(mail, attach_file)
-  mail.add_file(attach_file)
-  return mail
-end
-
-def send_mail(from, to, subject, body, uid, passwd, attach_files)
-  mail = Mail.new(:charset => 'ISO-2022-JP')
-  mail.from(from)
-  mail.to(to)
-  mail.subject(subject)
-  if attach_files.size > 0 then
-    # Create multipart/mixed style.
-    part = Mail::Part.new
-#    part.content_type('text/plain; charset=iso-2022-jp') # Should not do this!
-    part.body(body)
-    mail.text_part = part
-    attach_files.each { |file|
-      mail = attach_file1(mail, file)
-    }
+  if (no_newline)
+    STDERR.print(str)
   else
-    # Single part. Just add body.
-    mail.body(body)
+    STDERR.puts(str)
   end
-  options = {
-    :address => SMTP_SERVER_ADDRESS,
-    :port => SMTP_SERVER_PORT,
-    :domain => SMTP_DOMAIN,
-    :authentication => :login,
-    :enable_starttls_auto => SMTP_ENABLE_TLS,
-    :user_name => uid,
-    :password => passwd
-  }
-  puts mail.to_s if TEST_FORMAT == true
-  mail.delivery_method(:smtp, options)
-  show_log("Sending from #{from.to_s} to #{to.to_s}...")
-  mail.deliver! unless TEST_FORMAT == true
-  show_log('Done!')
 end
 
 # Option
@@ -104,33 +35,34 @@ opt.parse!(ARGV)
 # Log File
 $stdout = File.open(log_file, "a")
 
-# Retrieve message subject and body.
-f = File.open(message_file, 'r:BOM|UTF-8')
-subject=f.gets.chomp
-body=f.read
-f.close
-
 # Read password database.
 range_to_addr = Hash.new
 addr_to_uid = Hash.new
 uid_to_pass = Hash.new
-p = CSV.read(password_csv, headers: true)
-p.each do |e|
+pdb = CSV.read(password_csv, headers: true)
+pdb.each do |e|
   range_to_addr[e['Range']] = e['Address'] unless e['Range'].nil?
   addr_to_uid[e['Address']] = e['UID']
   uid_to_pass[e['UID']] = e['Password']
 end
 
 # Prompt before send.
-STDERR.puts('message: ' + message_file);
-STDERR.puts('address: ' + address_csv);
-STDERR.puts('password: ' + password_csv);
-STDERR.puts('attachment: ' + attach_files.to_s) if (attach_files.size > 0)
-STDERR.print('Are you sure to send? (y/n)> ')
+show_log('server: ' + SMTP_SERVER_ADDRESS)
+show_log('message: ' + message_file)
+show_log('address: ' + address_csv)
+show_log('password: ' + password_csv)
+show_log('attachment: ' + attach_files.to_s) if (attach_files.size > 0)
+show_log('Are you sure to send? (y/n)> ', true)
 ans = gets
 unless ans.downcase.include?('y')
-  STDERR.puts('quit...')
+  show_log('quit...')
   exit
+end
+
+mail = MailThis.new(message_file)
+mail.log = $stdout
+attach_files.each do |a|
+  mail.add_attachment(a)
 end
 
 # Send message to all user listed in CSV.
@@ -166,8 +98,13 @@ database.each do |usr|
     next
   end
 
-  send_mail(from, usr['Address'], subject, body, uid, passwd, attach_files)
+  mail.to = usr['Address']
+  mail.from = from
+  mail.user_name = uid
+  mail.password = passwd
+  mail.send(false)
 end
+
 show_log('Finish!')
 
-# vim: sts=2 sw=2 et
+# vim: sts=2 sw=2 et nowrap
