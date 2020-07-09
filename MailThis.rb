@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
-require 'mail'
+#require 'mail'
+require 'mail-iso-2022-jp'
 require 'mime/types'
 require 'base64'
 require 'nkf'
@@ -99,7 +100,7 @@ class MailThis
 	  show_log(@mail.to_s)
     else
       show_log("Sending from #{@from.to_s} to #{@to.to_s}...")
-	  mail.deliver!
+	  @mail.deliver!
       show_log('Done!')
     end
   end
@@ -123,10 +124,10 @@ class MailThis
     @mail.cc = @cc unless @cc.nil?
     @mail.from = @from
     @mail.subject = @subject unless @subject.nil?
-    if (CHARSET.upcase == 'ISO-2022-JP')
-      # Special handling for ISO-2022-JP encoding.
-      @mail.content_transfer_encoding = '7bit'
-    end
+    # Note:
+    # Content-Transfer-Encoding setting is not required
+    # when 'mail-iso-2022-jp' is used.
+
     # Add format dependent body.
     if (@html == true)
       encode_text_part(remove_html_tag(@body))
@@ -134,6 +135,7 @@ class MailThis
     elsif (@attachments.size > 0)
       encode_text_part(@body)
     else
+	  #@mail.body = (NKF.nkf("--oc=#{CHARSET}", @body))
 	  @mail.body = @body
     end
     # Add attachments.
@@ -148,11 +150,9 @@ class MailThis
 
   def encode_text_part(body)
     text_part = Mail::Part.new
-    text_part.content_type = "text/plain;charset=#{CHARSET}"
-    if (CHARSET.upcase == 'ISO-2022-JP')
-      # Special handling for ISO-2022-JP encoding.
-      text_part.content_transfer_encoding = '7bit'
-    end
+    # Note:
+    # Charset/Content-Transfer-Encoding related settings
+    # are not required when 'mail-iso-2022-jp' is used.
     text_part.body = body
     @mail.text_part = text_part
   end
