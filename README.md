@@ -4,6 +4,14 @@ A simple ruby script to send text message.
 
 ## Getting Started
 
+1. Please install ruby and dependent library:
+	1. Usually, you need to do following
+
+	```
+	gem install mail-iso-2022-jp
+	gem install mime-types
+	```
+
 1. Please prepare following items:
 	1. `config.rb` - configuration file which gives server information, including password.
 	1. Any message text, which is using UTF-8 as file encoding (*.txt or *.html)
