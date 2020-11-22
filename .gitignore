@@ -4,4 +4,5 @@ Message.txt
 server.rb
 credentials.json
 token.yaml
+config.json
 *.log

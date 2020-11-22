@@ -5,6 +5,7 @@ require 'mail-iso-2022-jp'
 require 'mime/types'
 require 'base64'
 require 'nkf'
+require "json"
 
 # Add script directory and current directory in Load Path.
 $LOAD_PATH.unshift(File.dirname(File.expand_path(__FILE__)))
@@ -12,26 +13,52 @@ $LOAD_PATH.unshift(Dir.pwd)
 
 # Load configuration file.
 begin
-  require('config')
+  require 'config'
 rescue LoadError
-  puts <<EOS
-Plese create "config.rb", which contains following constants.
+end
 
-SMTP_SERVER_ADDRESS = 'smtp.gmail.com'
-SMTP_SERVER_PORT = 587
-SMTP_ENABLE_TLS = true
-SMTP_USER_NAME = 'sample@gmal.com'
-SMTP_PASS = 'xxxxxxxxxxxxxx'
-FROM_ADDRESS = SMTP_USER_NAME
-CHARSET = 'ISO-2022-JP'
-EOS
-  exit
+class MailConfig
+  attr_reader :smtp_server_address,
+    :smtp_server_port,
+    :smtp_enable_tls,
+    :smtp_user_name,
+    :smtp_pass,
+    :from_address,
+    :charset,
+    :debug
+  def initialize(filename = "config.json")
+    hash = {}
+    File.exist?(filename) and File.open(filename) do |j|
+      hash = JSON.load(j)
+    end
+    [
+      'SMTP_SERVER_ADDRESS',
+      'SMTP_SERVER_PORT',
+      'SMTP_ENABLE_TLS',
+      'SMTP_USER_NAME',
+      'SMTP_PASS',
+      'FROM_ADDRESS',
+      'CHARSET',
+      'DEBUG'
+    ].each do |key|
+      if defined?(hash[key])
+        if hash[key].is_a?(String)
+          eval "@#{key.downcase} = '#{hash[key]}'"
+        else
+          eval "@#{key.downcase} = #{hash[key]}"
+        end
+      elsif eval "defined?(#{hash[key]})"
+        eval "@#{key.downcase} = #{key}"
+      end
+    end
+  end
 end
 
 class MailThis
   attr_writer :from, :password, :user_name, :to, :cc, :subject, :log
 
-  def initialize(filename)
+  def initialize(filename, config_fn = 'config.json')
+    @config = MailConfig.new(config_fn)
     if (filename =~ /.html*$/)
       @html = true
     else
@@ -53,10 +80,9 @@ class MailThis
 	  end
 	  @body = f.read
 	}
-    @charset = CHARSET
-    @from = FROM_ADDRESS if defined?(FROM_ADDRESS)
-    @user_name = SMTP_USER_NAME if defined?(SMTP_USER_NAME)
-    @password = SMTP_PASS if defined?(SMTP_PASS)
+    @from = @config.from_address if defined?(@config.from_address)
+    @user_name = @config.smtp_user_name if defined?(@config.smtp_user_name)
+    @password = @config.smtp_pass if defined?(@config.smtp_pass)
     @attachments = Array.new
     @log = nil
   end
@@ -87,16 +113,16 @@ class MailThis
     end
 
 	opt = {
-	  :address => SMTP_SERVER_ADDRESS,
-	  :port => SMTP_SERVER_PORT,
+      :address => @config.smtp_server_address,
+      :port => @config.smtp_server_port,
 	  :authentication => :login,
-	  :enable_starttls_auto => SMTP_ENABLE_TLS,
+      :enable_starttls_auto => @config.smtp_enable_tls,
 	  :user_name => @user_name,
 	  :password => @password,
 	}
 	@mail.delivery_method(:smtp, opt)
 
-    if defined?(DEBUG) and DEBUG
+    if defined?(@config.debug) and @config.debug
 	  show_log(@mail.to_s)
     else
       show_log("Sending from #{@from.to_s} to #{@to.to_s}...")
@@ -119,7 +145,7 @@ class MailThis
   def encode_message
     # Common part.
     @mail = Mail.new
-    @mail.charset = @charset
+    @mail.charset = @config.charset
     @mail.to = @to unless @to.nil?
     @mail.cc = @cc unless @cc.nil?
     @mail.from = @from
@@ -192,6 +218,7 @@ if $0 == __FILE__
   while f = ARGV.shift do
     m.add_attachment(f)
   end
+  p m
   p m.to_s
   m.send
 end
