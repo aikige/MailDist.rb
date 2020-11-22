@@ -13,7 +13,7 @@ A simple ruby script to send text message.
 	```
 
 1. Please prepare following items:
-	1. `config.rb` - configuration file which gives server information, including password.
+	1. `config.json` - configuration file which gives server information, including password.
 	1. Any message text, which is using UTF-8 as file encoding (*.txt or *.html)
 1. Executed script.
 1. Then you'll get E-mail sent.
@@ -46,21 +46,23 @@ Message body.
 If you want to send HTML formatted E-mail, please use '.html' extension for the filename.
 The script determines input data format between `text/plain` and `text/html` based on extension.
 
-## Configuration file (`config.rb`) format
+## Configuration file (`config.json`) format
 
-`config.rb` is simple ruby script which sets several constants which is used by `MailThis.rb`
+`config.json` is simple JSON data used to set several constants which is used by `MailThis.rb`
 
 For example, in the case of Gmail:
 
 ```
-SMTP_SERVER_ADDRESS = 'smtp.gmail.com'
-SMTP_SERVER_PORT = 587
-SMTP_ENABLE_TLS = true
-SMTP_USER_NAME = 'example@gmail.com'
-SMTP_PASS = 'xxxxxxxx'
-FROM_ADDRESS = SMTP_USER_NAME
-CHARSET = 'ISO-2022-JP'
-DEBUG = true
+{
+    "SMTP_SERVER_ADDRESS" = "smtp.gmail.com"
+    "SMTP_SERVER_PORT" = 587
+    "SMTP_ENABLE_TLS" = true
+    "SMTP_USER_NAME" = "example@gmail.com"
+    "SMTP_PASS" = "xxxxxxxx"
+    "FROM_ADDRESS" = "example@gmail.com"
+    "CHARSET" = "ISO-2022-JP"
+    "DEBUG" = true
+}
 ```
 
 ## Sample to use `MailThis.rb` as module - `MailDist.rb`
