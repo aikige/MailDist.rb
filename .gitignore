@@ -5,4 +5,5 @@ server.rb
 credentials.json
 token.yaml
 config.json
+sample.txt
 *.log
