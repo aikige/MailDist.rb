@@ -26,31 +26,59 @@ class MailConfig
     :from_address,
     :charset,
     :debug
+
   def initialize(filename = "config.json")
-    hash = {}
+    @keys = [
+      "smtp_server_address",
+      "smtp_server_port",
+      "smtp_enable_tls",
+      "smtp_user_name",
+      "smtp_pass",
+      "from_address",
+      "charset",
+      "debug"]
     File.exist?(filename) and File.open(filename) do |j|
-      hash = JSON.load(j)
+      import_hash(JSON.load(j))
     end
-    [
-      'SMTP_SERVER_ADDRESS',
-      'SMTP_SERVER_PORT',
-      'SMTP_ENABLE_TLS',
-      'SMTP_USER_NAME',
-      'SMTP_PASS',
-      'FROM_ADDRESS',
-      'CHARSET',
-      'DEBUG'
-    ].each do |key|
-      if defined?(hash[key])
+    import_const
+  end
+
+  def is_bool?(val)
+    return false if (val != true and val != false)
+    return true
+  end
+
+  def validate()
+    raise "smtp_enable_tls shall be bool" unless is_bool?(@smtp_enable_tls)
+    raise "smtp_server_port shall be int" unless @smtp_server_port.is_a?(Integer)
+  end
+
+  def debug?()
+    return false unless defined?(@debug)
+    return @debug
+  end
+
+  def import_hash(hash)
+    return unless hash.is_a?(Hash)
+    @keys.each do |key|
+      if hash.has_key?(key)
         if hash[key].is_a?(String)
-          eval "@#{key.downcase} = '#{hash[key]}'"
+          eval("@#{key} = '#{hash[key]}'")
         else
-          eval "@#{key.downcase} = #{hash[key]}"
+          eval("@#{key} = #{hash[key]}")
         end
-      elsif eval "defined?(#{hash[key]})"
-        eval "@#{key.downcase} = #{key}"
       end
     end
+    validate
+  end
+
+  def import_const()
+    @keys.each do |key|
+      next if eval("defined?(@#{key})")
+      next unless eval("defined?(#{key.upcase})")
+      eval("@#{key} = #{key.upcase}")
+    end
+    validate
   end
 end
 
@@ -80,9 +108,9 @@ class MailThis
 	  end
 	  @body = f.read
 	}
-    @from = @config.from_address if defined?(@config.from_address)
-    @user_name = @config.smtp_user_name if defined?(@config.smtp_user_name)
-    @password = @config.smtp_pass if defined?(@config.smtp_pass)
+    @from = @config.from_address
+    @user_name = @config.smtp_user_name
+    @password = @config.smtp_pass
     @attachments = Array.new
     @log = nil
   end
@@ -122,7 +150,7 @@ class MailThis
 	}
 	@mail.delivery_method(:smtp, opt)
 
-    if defined?(@config.debug) and @config.debug
+    if @config.debug?
 	  show_log(@mail.to_s)
     else
       show_log("Sending from #{@from.to_s} to #{@to.to_s}...")
