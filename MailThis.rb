@@ -18,17 +18,7 @@ rescue LoadError
 end
 
 class MailConfig
-  attr_reader :smtp_server_address,
-    :smtp_server_port,
-    :smtp_enable_tls,
-    :smtp_user_name,
-    :smtp_pass,
-    :from_address,
-    :charset,
-    :debug
-
-  def initialize(filename = "config.json")
-    @keys = [
+  KEYS = [
       "smtp_server_address",
       "smtp_server_port",
       "smtp_enable_tls",
@@ -37,6 +27,7 @@ class MailConfig
       "from_address",
       "charset",
       "debug"]
+  def initialize(filename = "config.json")
     File.exist?(filename) and File.open(filename) do |j|
       import_hash(JSON.load(j))
     end
@@ -60,23 +51,21 @@ class MailConfig
 
   def import_hash(hash)
     return unless hash.is_a?(Hash)
-    @keys.each do |key|
+    KEYS.each do |key|
       if hash.has_key?(key)
-        if hash[key].is_a?(String)
-          eval("@#{key} = '#{hash[key]}'")
-        else
-          eval("@#{key} = #{hash[key]}")
-        end
+        instance_variable_set("@#{key}", hash[key])
+        self.class.send(:attr_reader, key) unless respond_to?(key)
       end
     end
     validate
   end
 
   def import_const()
-    @keys.each do |key|
-      next if eval("defined?(@#{key})")
-      next unless eval("defined?(#{key.upcase})")
-      eval("@#{key} = #{key.upcase}")
+    KEYS.each do |key|
+      next if respond_to?(key)
+      next unless defined?(eval("#{key.upcase})"))
+      instance_variable_set("@#{key}", eval("#{key.upcase}"))
+      self.class.send(:attr_reader, key)
     end
     validate
   end
