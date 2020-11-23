@@ -35,8 +35,7 @@ class MailConfig
   end
 
   def is_bool?(val)
-    return false if (val != true and val != false)
-    return true
+    return !!val == val
   end
 
   def validate()
