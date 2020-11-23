@@ -62,7 +62,7 @@ class MailConfig
   def import_const()
     KEYS.each do |key|
       next if respond_to?(key)
-      next unless defined?(eval("#{key.upcase})"))
+      next unless eval("defined?(#{key.upcase})")
       instance_variable_set("@#{key}", eval("#{key.upcase}"))
       self.class.send(:attr_reader, key)
     end
@@ -96,9 +96,9 @@ class MailThis
 	  end
 	  @body = f.read
 	}
-    @from = @config.from_address
-    @user_name = @config.smtp_user_name
-    @password = @config.smtp_pass
+    @from = @config.from_address if @config.respond_to?(:from_address)
+    @user_name = @config.smtp_user_name if @config.respond_to?(:smtp_user_name)
+    @password = @config.smtp_pass if @config.respond_to?(:smtp_pass)
     @attachments = Array.new
     @log = nil
   end
@@ -114,6 +114,9 @@ class MailThis
     raise "no @subject" if @subject.nil?
     raise "no @user_name" if @user_name.nil?
     raise "no @password" if @password.nil?
+    raise "no smtp_server_address" unless @config.respond_to?(:smtp_server_address)
+    raise "no smtp_server_port" unless @config.respond_to?(:smtp_server_port)
+    raise "no smtp_enable_tls" unless @config.respond_to?(:smtp_enable_tls)
 
     @mail = nil if from_scratch
 

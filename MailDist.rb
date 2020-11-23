@@ -47,7 +47,6 @@ pdb.each do |e|
 end
 
 # Prompt before send.
-show_log('server: ' + SMTP_SERVER_ADDRESS)
 show_log('message: ' + message_file)
 show_log('address: ' + address_csv)
 show_log('password: ' + password_csv)
