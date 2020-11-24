@@ -28,19 +28,11 @@ class MailConfig
       "charset",
       "debug"]
   def initialize(filename = "config.json")
+    import_const()
     File.exist?(filename) and File.open(filename) do |j|
       import_hash(JSON.load(j))
     end
-    import_const
-  end
-
-  def is_bool?(val)
-    return !!val == val
-  end
-
-  def validate()
-    raise "smtp_enable_tls shall be bool" unless is_bool?(@smtp_enable_tls)
-    raise "smtp_server_port shall be int" unless @smtp_server_port.is_a?(Integer)
+    validate()
   end
 
   def debug?()
@@ -48,25 +40,36 @@ class MailConfig
     return @debug
   end
 
-  def import_hash(hash)
-    return unless hash.is_a?(Hash)
-    KEYS.each do |key|
-      if hash.has_key?(key)
-        instance_variable_set("@#{key}", hash[key])
-        self.class.send(:attr_reader, key) unless respond_to?(key)
-      end
-    end
-    validate
+  private def validate()
+    raise "smtp_enable_tls shall be bool" unless is_bool?(@smtp_enable_tls)
+    raise "smtp_server_port shall be int" unless @smtp_server_port.is_a?(Integer)
+    raise "smtp_server_address is not defined" unless defined?(@smtp_server_address)
+    @charset = 'ISO-2022-JP' unless defined?(@charset)
+    @smtp_pass = nil unless defined?(@smtp_pass)
+    @smtp_user_name = nil unless defined?(@smtp_user_name)
+    @from_address = nil unless defined?(@from_address)
   end
 
-  def import_const()
+  private def import_hash(hash)
+    return unless hash.is_a?(Hash)
     KEYS.each do |key|
-      next if respond_to?(key)
-      next unless eval("defined?(#{key.upcase})")
-      instance_variable_set("@#{key}", eval("#{key.upcase}"))
-      self.class.send(:attr_reader, key)
+      add_variable(key, hash[key]) if hash.has_key?(key)
     end
-    validate
+  end
+
+  private def import_const()
+    KEYS.each do |key|
+      add_variable(key, eval("#{key.upcase}")) if eval("defined?(#{key.upcase})")
+    end
+  end
+
+  private def is_bool?(val)
+    return !!val == val
+  end
+
+  private def add_variable(name, value)
+    instance_variable_set("@#{name}", value)
+    self.class.send(:attr_reader, name) unless respond_to?(name)
   end
 end
 
@@ -96,9 +99,9 @@ class MailThis
 	  end
 	  @body = f.read
 	}
-    @from = @config.from_address if @config.respond_to?(:from_address)
-    @user_name = @config.smtp_user_name if @config.respond_to?(:smtp_user_name)
-    @password = @config.smtp_pass if @config.respond_to?(:smtp_pass)
+    @from = @config.from_address
+    @user_name = @config.smtp_user_name
+    @password = @config.smtp_pass
     @attachments = Array.new
     @log = nil
   end
@@ -114,9 +117,6 @@ class MailThis
     raise "no @subject" if @subject.nil?
     raise "no @user_name" if @user_name.nil?
     raise "no @password" if @password.nil?
-    raise "no smtp_server_address" unless @config.respond_to?(:smtp_server_address)
-    raise "no smtp_server_port" unless @config.respond_to?(:smtp_server_port)
-    raise "no smtp_enable_tls" unless @config.respond_to?(:smtp_enable_tls)
 
     @mail = nil if from_scratch
 
@@ -154,14 +154,12 @@ class MailThis
 	"body=#{@body},subject=#{@subject},to=#{@to}"
   end
 
-  private
-
-  def show_log(str)
+  private def show_log(str)
     @log.puts(str) unless @log.nil?
     STDERR.puts(str)
   end
 
-  def encode_message
+  private def encode_message
     # Common part.
     @mail = Mail.new
     @mail.charset = @config.charset
@@ -189,11 +187,11 @@ class MailThis
     end
   end
 
-  def remove_html_tag(str)
+  private def remove_html_tag(str)
     str.gsub(%r{</?[^>]+?>}, '')
   end
 
-  def encode_text_part(body)
+  private def encode_text_part(body)
     text_part = Mail::Part.new
     # Note:
     # Charset/Content-Transfer-Encoding related settings
@@ -202,19 +200,19 @@ class MailThis
     @mail.text_part = text_part
   end
 
-  def encode_html_part(body)
+  private def encode_html_part(body)
     html_part = Mail::Part.new
     html_part.content_type = "text/html;charset=UTF-8"
     html_part.body = body
     @mail.html_part = html_part
   end
 
-  def encode_attachment_unused(file)
+  private def encode_attachment_unused(file)
     # Note: do not use this since text encoding will not work.
     @mail.add_file(file)
   end
 
-  def encode_attachment(file)
+  private def encode_attachment(file)
     body = File.binread(file)
     type = MIME::Types.type_for(file)[0].to_s
     if type =~ /text\/.*/ then
