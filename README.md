@@ -54,14 +54,14 @@ For example, in the case of Gmail:
 
 ```
 {
-    "smtp_server_address" = "smtp.gmail.com"
-    "smtp_server_port" = 587
-    "smtp_enable_tls" = true
-    "smtp_user_name" = "example@gmail.com"
-    "smtp_pass" = "xxxxxxxx"
-    "from_address" = "example@gmail.com"
-    "charset" = "iso-2022-JP"
-    "debug" = true
+    "smtp_server_address": "smtp.gmail.com"
+    "smtp_server_port": 587
+    "smtp_enable_tls": true
+    "smtp_user_name": "example@gmail.com"
+    "smtp_pass": "xxxxxxxx"
+    "from_address": "example@gmail.com"
+    "charset": "iso-2022-JP"
+    "debug": true
 }
 ```
 
