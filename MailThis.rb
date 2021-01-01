@@ -28,6 +28,11 @@ class MailConfig
       "charset",
       "debug"]
   def initialize(filename = "config.json")
+    # Default values for mandatory members.
+    add_variable('from_address', nil)
+    add_variable('smtp_user_name', nil)
+    add_variable('smtp_pass', nil)
+    # Import members.
     import_const()
     File.exist?(filename) and File.open(filename) do |j|
       import_hash(JSON.load(j))
