@@ -47,6 +47,8 @@ Note: title row is needed.
 
 In the 2nd format, user can specify *FROM* field using *Range_ID*, this *Range_ID* should be written in Password.csv in this case.
 
+If you want to manage this CSV file under Google Drive, please consider to use [`ExportGS.rb`](ExportGS.md).
+
 ### Password.csv
 
 This script is expecting that SMTP server requires authentication. `Password.csv` is used to provide authentication information needed to send E-mail using the address.
@@ -63,4 +65,9 @@ This file needs *Range* field.
 |hoge@hoge.com|hogehoge|piyopiyo|1|
 |fuga@hoge.com|fugafuga|piyohoge|2|
 
-If you want to manage this CSV file under Google Drive, please consider to use [`ExportGS.rb`](ExportGS.md).
+#### For those who do not want to save plain text passwords
+
+If you execute `MailDist.rb` with `-e` option, it will encrypt passwords using AES-256 with a *Master Password*.
+By this operation, *Password* field in the `Password.csv` will be replaced to *EncPassword* and *Salt*.
+
+Once you encrypt password file, you need to enter the *Master Password* to run this script, since the `Password.csv` does not store *Master Password*.
