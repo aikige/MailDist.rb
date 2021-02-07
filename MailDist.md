@@ -70,4 +70,4 @@ This file needs *Range* field.
 If you execute `MailDist.rb` with `-e` option, it will encrypt passwords using AES-256 with a *Master Password*.
 By this operation, *Password* field in the `Password.csv` will be replaced to *EncPassword* and *Salt*.
 
-Once you encrypt password file, you need to enter the *Master Password* to run this script, since the `Password.csv` does not store *Master Password*.
+Once you encrypt password file, you need to enter the *Master Password* to run this script, since the `Password.csv` does not store the *Master Password*.
