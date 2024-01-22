@@ -2,39 +2,40 @@
 
 A simple ruby script to send text message.
 
+## Getting Started (requires Bundler)
+
+1. Precondition<br>
+   If you don't have [Bundler] installed, please execute following:
+    ```
+    gem install bundler
+    ```
+1. Setup
+    1. Clone this repository.
+    1. Execute `setup.sh` &mdash; this will execute `bundle install`.
+    1. Copy `config_example.json` to `config.json`
+    1. Edit `config.json` to adjust your environment.
+1. Daily Use
+    1. Execute `send.sh` if you want to try `MailThis.rb`.
+    1. Execute `dist.sh` if you want to execute mail distribution via `MailDist.rb`.
+
 ## Getting Started (without Bundler)
 
 [Bundler]:https://bundler.io/
 
 1. Please install ruby and dependent library
 	1. Usually, you need to do following
-
-	```
-	gem install mail-iso-2022-jp
-	gem install mime-types
-	```
-
+        ```
+        gem install mail-iso-2022-jp
+        gem install mime-types
+        ```
 1. Please prepare following items:
 	1. `config.json` - configuration file which gives server information, including password.
 	1. Any message text, which is using UTF-8 as file encoding (`*.txt` or `*.html`)
 1. Executed script. If you are going to send `Message.txt` please execute following
-   ```
-   ruby MailThis.rb Message.txt
-   ```
+    ```
+    ruby MailThis.rb Message.txt
+    ```
 1. Then you'll get E-mail sent.
-
-## Getting Started with Bundler
-
-It is also possible to use [Bundler] to manage packages.
-
-1. Please install dependent files:
-    ```
-    bundle install
-    ```
-1. Then execute command via `bundle`
-    ```
-    bundle exec ruby MailThis.rb Message.txt
-    ```
 
 ## Synopsis
 
@@ -64,7 +65,7 @@ Message body.
 If you want to send HTML formatted E-mail, please use '.html' extension for the filename.
 The script determines input data format between `text/plain` and `text/html` based on extension.
 
-## Configuration file (`config.json`) format
+## Configuration file format
 
 `config.json` is simple JSON data used to set several constants which is used by `MailThis.rb`
 

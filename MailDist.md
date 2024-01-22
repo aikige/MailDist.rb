@@ -39,15 +39,13 @@ Note: title row is needed.
 
 |Name|From|Flag|Address|Flag|
 |----|----|----|-------|----|
-|Name of destination|address used in from field|send|address@of.distination|send|
+|Name of destination|address@of.sender|send|address@of.distination|send|
 
 |Name|Range|Flag|Address|Flag|
 |----|-----|----|-------|----|
-|Name of destination|Range ID|send|address@of.distination|send|
+|Name of destination|*Range_ID*|send|address@of.distination|send|
 
-In the 2nd format, user can specify *FROM* field using *Range_ID*, this *Range_ID* should be written in Password.csv in this case.
-
-If you want to manage this CSV file under Google Drive, please consider to use [`ExportGS.rb`](ExportGS.md).
+In the 2nd format, *FROM* field is specified by *Range_ID*, this *Range_ID* should be written in Password.csv in this case.
 
 ### Password.csv
 
@@ -57,7 +55,7 @@ This script is expecting that SMTP server requires authentication. `Password.csv
 |-------|---|--------|
 |hoge@hoge.com|hogehoge|piyopiyo|
 
-if you are using *Range_ID* to specify from field.
+If you are using *Range_ID* to specify from field.
 This file needs *Range* field.
 
 |Address|UID|Password|Range|
