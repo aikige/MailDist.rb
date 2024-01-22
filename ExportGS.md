@@ -1,5 +1,9 @@
 # `ExportGS.rb`
 
+This script is not maintained and probably does not work with latest Google Spreadsheet.
+
+---
+
 The script `ExportGS.rb` allow you to download Address.csv from Google Spreadsheet.
 
 ## Synopsis
