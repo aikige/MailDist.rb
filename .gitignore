@@ -7,4 +7,5 @@ token.yaml
 config.json
 sample.txt
 Gemfile.lock
+.bundle
 *.log
