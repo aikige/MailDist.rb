@@ -6,6 +6,7 @@ require 'mime/types'
 require 'base64'
 require 'nkf'
 require "json"
+require "erb"
 
 # Add script directory and current directory in Load Path.
 $LOAD_PATH.unshift(File.dirname(File.expand_path(__FILE__)))
@@ -26,7 +27,10 @@ class MailConfig
       "smtp_pass",
       "from_address",
       "charset",
-      "debug"]
+      "debug",
+      "list_unsubscribe_base",
+      "list_unsubscribe_message"
+  ]
   def initialize(filename = "config.json")
     # Default values for mandatory members.
     add_variable('from_address', nil)
@@ -53,6 +57,9 @@ class MailConfig
     @smtp_pass = nil unless defined?(@smtp_pass)
     @smtp_user_name = nil unless defined?(@smtp_user_name)
     @from_address = nil unless defined?(@from_address)
+    unless defined?(@list_unsubscribe_message)
+      @list_unsubscribe_message = "Link to unsubscribe " 
+    end
   end
 
   private def import_hash(hash)
@@ -79,7 +86,7 @@ class MailConfig
 end
 
 class MailThis
-  attr_writer :from, :password, :user_name, :to, :cc, :subject, :log
+  attr_writer :from, :password, :user_name, :to, :cc, :subject, :log, :name, :list_unsubscribe_unique
 
   def initialize(filename, config_fn = 'config.json')
     @config = MailConfig.new(config_fn)
@@ -88,6 +95,9 @@ class MailThis
     else
       @html = false
     end
+    @list_unsubscribe_unique = nil
+    @attachments = Array.new
+    @log = nil
 	File.open(filename) { |f|
 	  loop do
 		l = f.gets.chomp
@@ -100,6 +110,12 @@ class MailThis
 		  @to = l.sub(/^to:\s+/i, '')
 		when /^cc:/i then
 		  @cc = l.sub(/^cc:\s+/i, '')
+        when /^list-unsubscribe-unique:/i then
+          @list_unsubscribe_unique = l.sub(/^list-unsubscribe-unique:\s+/i, '')
+          if @config.respond_to?(:list_unsubscribe_base) then
+            @list_unsubscribe_link =
+              @config.list_unsubscribe_base + @list_unsubscribe_link
+          end
 		end
 	  end
 	  @body = f.read
@@ -107,8 +123,6 @@ class MailThis
     @from = @config.from_address
     @user_name = @config.smtp_user_name
     @password = @config.smtp_pass
-    @attachments = Array.new
-    @log = nil
   end
 
   def add_attachment(file)
@@ -125,16 +139,8 @@ class MailThis
 
     @mail = nil if from_scratch
 
-    if @mail.nil?
-      encode_message
-    else  # Reuse existing @mail object.
-      # Update To, Cc and From.
-      @mail.to = @to unless @to.nil?
-      @mail.cc = @cc unless @cc.nil?
-      @mail.from = @from
-      # Trick to update Message-ID field.
-      @mail.add_message_id
-    end
+    # Note: encode everytime, since body may includes unsubscribe link.
+    encode_message
 
 	opt = {
       :address => @config.smtp_server_address,
@@ -149,7 +155,7 @@ class MailThis
     if @config.debug?
 	  show_log(@mail.to_s)
     else
-      show_log("Sending from #{@from.to_s} to #{@to.to_s}...")
+      show_log("Sending from #{@from.to_s} to #{@name} <#{@to.to_s}>...")
 	  @mail.deliver!
       show_log('Done!')
     end
@@ -164,6 +170,23 @@ class MailThis
     STDERR.puts(str)
   end
 
+  private def add_list_unsubscribe(body)
+    return body if @list_unsubscribe_unique.nil?
+    if @config.respond_to?(:list_unsubscribe_base) then
+      link = @config.list_unsubscribe_base + @list_unsubscribe_unique
+    else
+      link = @list_unsubscribe_unique
+    end
+    @mail.header['List-Unsubscribe'] = "<#{link}>"
+    @mail.header['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
+    if (@html == true)
+      body += "<a href=\"#{link}\">#{@config.list_unsubscribe_message}</a>"
+    else
+      body += "#{@config.list_unsubscribe_message}#{link}"
+    end
+    return body
+  end
+
   private def encode_message
     # Common part.
     @mail = Mail.new
@@ -172,19 +195,20 @@ class MailThis
     @mail.cc = @cc unless @cc.nil?
     @mail.from = @from
     @mail.subject = @subject unless @subject.nil?
+    body = add_list_unsubscribe(@body)
     # Note:
     # Content-Transfer-Encoding setting is not required
     # when 'mail-iso-2022-jp' is used.
 
     # Add format dependent body.
     if (@html == true)
-      encode_text_part(remove_html_tag(@body))
-      encode_html_part(@body)
+      encode_text_part(remove_html_tag(body))
+      encode_html_part(body)
     elsif (@attachments.size > 0)
-      encode_text_part(@body)
+      encode_text_part(body)
     else
-	  #@mail.body = (NKF.nkf("--oc=#{CHARSET}", @body))
-	  @mail.body = @body
+	  #@mail.body = (NKF.nkf("--oc=#{CHARSET}", body))
+	  @mail.body = body
     end
     # Add attachments.
     @attachments.each do |f|

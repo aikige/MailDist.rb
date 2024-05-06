@@ -86,6 +86,7 @@ log_file = "#{Date.today.strftime('%Y%m%d')}.log"
 attach_files = Array.new
 flag = nil
 update_encrypt = false
+list_unsubscribe = false
 
 # Option
 opt = OptionParser.new
@@ -96,6 +97,7 @@ opt.on('-c FILE', '--contacts=FILE',
 opt.on('-a FILE', '--attachment=FILE', 'Add attachment file.') { |v| attach_files.push(v) }
 opt.on('-f FLAG', '--flag=FLAG', 'Set flag to select user.') { |v| flag = v }
 opt.on('-e', '--encrypt', 'Encrypt password in password file.') { |v| update_encrypt = true }
+opt.on('-l', '--list-unsubscribe', 'Enable List-Unsubscribe header.') { |v| list_unsubscribe = true }
 opt.parse!(ARGV)
 
 # Log File
@@ -181,6 +183,10 @@ database.each do |usr|
   mail.from = from
   mail.user_name = uid
   mail.password = passwd
+  mail.name = usr['Name']
+  if list_unsubscribe
+    mail.list_unsubscribe_unique = "from=#{usr['Address']}".gsub(/@/, '%40')
+  end
   mail.send(false)
 end
 
