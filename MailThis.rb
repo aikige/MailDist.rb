@@ -98,28 +98,28 @@ class MailThis
     @list_unsubscribe_unique = nil
     @attachments = Array.new
     @log = nil
-	File.open(filename) { |f|
-	  loop do
-		l = f.gets.chomp
-		case l
-		when /^$/ then
-		  break
-		when /^subject:/i then
-		  @subject = l.sub(/^subject:\s+/i, '')
-		when /^to:/i then
-		  @to = l.sub(/^to:\s+/i, '')
-		when /^cc:/i then
-		  @cc = l.sub(/^cc:\s+/i, '')
+    File.open(filename) { |f|
+      loop do
+        l = f.gets.chomp
+        case l
+        when /^$/ then
+          break
+        when /^subject:/i then
+          @subject = l.sub(/^subject:\s+/i, '')
+        when /^to:/i then
+          @to = l.sub(/^to:\s+/i, '')
+        when /^cc:/i then
+          @cc = l.sub(/^cc:\s+/i, '')
         when /^list-unsubscribe-unique:/i then
           @list_unsubscribe_unique = l.sub(/^list-unsubscribe-unique:\s+/i, '')
           if @config.respond_to?(:list_unsubscribe_base) then
             @list_unsubscribe_link =
               @config.list_unsubscribe_base + @list_unsubscribe_link
           end
-		end
-	  end
-	  @body = f.read
-	}
+        end
+      end
+      @body = f.read
+    }
     @from = @config.from_address
     @user_name = @config.smtp_user_name
     @password = @config.smtp_pass
@@ -142,27 +142,27 @@ class MailThis
     # Note: encode everytime, since body may includes unsubscribe link.
     encode_message
 
-	opt = {
+    opt = {
       :address => @config.smtp_server_address,
       :port => @config.smtp_server_port,
-	  :authentication => :login,
+      :authentication => :login,
       :enable_starttls_auto => @config.smtp_enable_tls,
-	  :user_name => @user_name,
-	  :password => @password,
-	}
-	@mail.delivery_method(:smtp, opt)
+      :user_name => @user_name,
+      :password => @password,
+    }
+    @mail.delivery_method(:smtp, opt)
 
     if @config.debug?
-	  show_log(@mail.to_s)
+      show_log(@mail.to_s)
     else
       show_log("Sending from #{@from.to_s} to #{@name} <#{@to.to_s}>...")
-	  @mail.deliver!
+      @mail.deliver!
       show_log('Done!')
     end
   end
 
   def to_s
-	"body=#{@body},subject=#{@subject},to=#{@to}"
+    "body=#{@body},subject=#{@subject},to=#{@to}"
   end
 
   private def show_log(str)
@@ -207,8 +207,8 @@ class MailThis
     elsif (@attachments.size > 0)
       encode_text_part(body)
     else
-	  #@mail.body = (NKF.nkf("--oc=#{CHARSET}", body))
-	  @mail.body = body
+      #@mail.body = (NKF.nkf("--oc=#{CHARSET}", body))
+      @mail.body = body
     end
     # Add attachments.
     @attachments.each do |f|
@@ -268,3 +268,5 @@ if $0 == __FILE__
   p m.to_s
   m.send
 end
+
+# vim: sts=2 sw=2 et nowrap
