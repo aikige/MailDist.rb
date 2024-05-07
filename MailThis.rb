@@ -6,7 +6,7 @@ require 'mime/types'
 require 'base64'
 require 'nkf'
 require "json"
-require "erb"
+#require "openssl"
 
 # Add script directory and current directory in Load Path.
 $LOAD_PATH.unshift(File.dirname(File.expand_path(__FILE__)))
@@ -27,9 +27,10 @@ class MailConfig
       "smtp_pass",
       "from_address",
       "charset",
-      "debug",
       "list_unsubscribe_base",
-      "list_unsubscribe_message"
+      "list_unsubscribe_message",
+      "validate_ssl",
+      "debug"
   ]
   def initialize(filename = "config.json")
     # Default values for mandatory members.
@@ -57,6 +58,7 @@ class MailConfig
     @smtp_pass = nil unless defined?(@smtp_pass)
     @smtp_user_name = nil unless defined?(@smtp_user_name)
     @from_address = nil unless defined?(@from_address)
+    @validate_ssl = true unless defined?(@validate_ssl)
     unless defined?(@list_unsubscribe_message)
       @list_unsubscribe_message = "Link to unsubscribe " 
     end
@@ -112,10 +114,6 @@ class MailThis
           @cc = l.sub(/^cc:\s+/i, '')
         when /^list-unsubscribe-unique:/i then
           @list_unsubscribe_unique = l.sub(/^list-unsubscribe-unique:\s+/i, '')
-          if @config.respond_to?(:list_unsubscribe_base) then
-            @list_unsubscribe_link =
-              @config.list_unsubscribe_base + @list_unsubscribe_link
-          end
         end
       end
       @body = f.read
@@ -142,6 +140,11 @@ class MailThis
     # Note: encode everytime, since body may includes unsubscribe link.
     encode_message
 
+    if @config.validate_ssl
+      ssl_verify_mode = nil
+    else
+      ssl_verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
     opt = {
       :address => @config.smtp_server_address,
       :port => @config.smtp_server_port,
@@ -149,6 +152,7 @@ class MailThis
       :enable_starttls_auto => @config.smtp_enable_tls,
       :user_name => @user_name,
       :password => @password,
+      :openssl_verify_mode => ssl_verify_mode,
     }
     @mail.delivery_method(:smtp, opt)
 
