@@ -28,7 +28,6 @@ class MailConfig
       "from_address",
       "charset",
       "list_unsubscribe_base",
-      "list_unsubscribe_message",
       "validate_ssl",
       "debug"
   ]
@@ -183,12 +182,7 @@ class MailThis
     end
     @mail.header['List-Unsubscribe'] = "<#{link}>"
     @mail.header['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
-    if (@html == true)
-      body += "<a href=\"#{link}\">#{@config.list_unsubscribe_message}</a>"
-    else
-      body += "#{@config.list_unsubscribe_message}#{link}"
-    end
-    return body
+    return body.gsub(/\$LIST_UNSUBSCRIBE_LINK/, link)
   end
 
   private def encode_message
