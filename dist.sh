@@ -1,1 +1,1 @@
-bundle exec MailDist.rb $*
+bundle exec MailDist.rb -l $*

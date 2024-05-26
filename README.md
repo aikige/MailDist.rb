@@ -73,16 +73,33 @@ For example, in the case of Gmail:
 
 ```
 {
-    "smtp_server_address": "smtp.gmail.com"
-    "smtp_server_port": 587
-    "smtp_enable_tls": true
-    "smtp_user_name": "example@gmail.com"
-    "smtp_pass": "xxxxxxxx"
-    "from_address": "example@gmail.com"
-    "charset": "iso-2022-JP"
+    "smtp_server_address": "smtp.gmail.com",
+    "smtp_server_port": 587,
+    "smtp_enable_tls": true,
+    "smtp_authentication":
+    "smtp_user_name": "example@gmail.com",
+    "smtp_pass": "xxxxxxxx",
+    "from_address": "example@gmail.com",
+    "charset": "iso-2022-JP",
+	"list_unsubscribe_base": "https://script.google.com/macros/s/XXXX/exec?",
+	"validate_ssl": true,
     "debug": true
 }
 ```
+
+### Configuration keys
+
+|Key|Mandatory?|Value Type|Description|
+|---|:-------:|----------|-----------|
+|`smtp_server_address`|M|string|IP address or server name of SMTP server.|
+|`smtp_server_port`|M|decimal|Port number of SMTP server.|
+|`smtp_enable_tls`|M|When this value is `true`, enables
+|`list_unsubscribe_base`|O|URL string|Base address of List-Unsubscribe URL.|
+|`validate_ssl`|O|boolean|When this value is `false`, application skips validation of SSL certificate. Default value is `true`.|
+
+## RFC 8058 Support
+
+When the input message file contains `list-unsubscribe-unique:` header, this script generates `List-Unsubscribe` and `List-Unsubscribe-Post` header based on `list-unsubscribe-unique` and `@config.list_unsubscribe_message`
 
 ## Sample to use `MailThis.rb` as module - `MailDist.rb`
 
