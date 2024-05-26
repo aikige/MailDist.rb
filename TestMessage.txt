@@ -1,0 +1,9 @@
+to: ariga.tatsuya@gmail.com
+subject: 13th Test Message for List-Unsubscribe
+list-unsubscribe-unique: from=ariga.tatsuya%40gmail.com
+
+This is 14th test message:
+Check if link replacement works.
+Note: %40=@
+
+Please follow the link to unsubscribe: $list_unsubscribe_link
