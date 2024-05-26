@@ -57,10 +57,8 @@ class MailConfig
     @smtp_pass = nil unless defined?(@smtp_pass)
     @smtp_user_name = nil unless defined?(@smtp_user_name)
     @from_address = nil unless defined?(@from_address)
-    @validate_ssl = true unless defined?(@validate_ssl)
-    unless defined?(@list_unsubscribe_message)
-      @list_unsubscribe_message = "Link to unsubscribe " 
-    end
+    @list_unsubscribe_base = '' unless defined?(@list_unsubscribe_base)
+    add_variable('validate_ssl', true) unless defined?(@validate_ssl)
   end
 
   private def import_hash(hash)
@@ -147,7 +145,7 @@ class MailThis
     opt = {
       :address => @config.smtp_server_address,
       :port => @config.smtp_server_port,
-      :authentication => :login,
+      :authentication => :login,  # TODO make this configuration option.
       :enable_starttls_auto => @config.smtp_enable_tls,
       :user_name => @user_name,
       :password => @password,
@@ -175,11 +173,7 @@ class MailThis
 
   private def add_list_unsubscribe(body)
     return body if @list_unsubscribe_unique.nil?
-    if @config.respond_to?(:list_unsubscribe_base) then
-      link = @config.list_unsubscribe_base + @list_unsubscribe_unique
-    else
-      link = @list_unsubscribe_unique
-    end
+    link = @config.list_unsubscribe_base + @list_unsubscribe_unique
     @mail.header['List-Unsubscribe'] = "<#{link}>"
     @mail.header['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click'
     return body.gsub(/\$LIST_UNSUBSCRIBE_LINK/, link)
