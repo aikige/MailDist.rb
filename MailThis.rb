@@ -209,7 +209,7 @@ class MailThis
   end
 
   private def remove_html_tag(str)
-    str.gsub(%r{</?[^>]+?>}, '')
+    str.gsub(%r{<!--.*?-->}m,'').gsub(%r{</?[^>]+?>}, '')
   end
 
   private def encode_text_part(body)
