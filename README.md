@@ -67,7 +67,7 @@ The script determines input data format between `text/plain` and `text/html` bas
 
 ## Configuration file format
 
-`config.json` is simple JSON data used to set several constants which is used by `MailThis.rb`
+`config.json` is a JSON data used to set several parameters which are used by `MailThis.rb`
 
 For example, in the case of Gmail:
 
@@ -76,14 +76,13 @@ For example, in the case of Gmail:
     "smtp_server_address": "smtp.gmail.com",
     "smtp_server_port": 587,
     "smtp_enable_tls": true,
-    "smtp_authentication":
+    "smtp_authentication": "login",
     "smtp_user_name": "example@gmail.com",
     "smtp_pass": "xxxxxxxx",
     "from_address": "example@gmail.com",
     "charset": "iso-2022-JP",
 	"list_unsubscribe_base": "https://script.google.com/macros/s/XXXX/exec?",
-	"validate_ssl": true,
-    "debug": true
+	"validate_ssl": true
 }
 ```
 
@@ -91,15 +90,43 @@ For example, in the case of Gmail:
 
 |Key|Mandatory?|Value Type|Description|
 |---|:-------:|----------|-----------|
-|`smtp_server_address`|M|string|IP address or server name of SMTP server.|
-|`smtp_server_port`|M|decimal|Port number of SMTP server.|
-|`smtp_enable_tls`|M|When this value is `true`, enables
-|`list_unsubscribe_base`|O|URL string|Base address of List-Unsubscribe URL.|
-|`validate_ssl`|O|boolean|When this value is `false`, application skips validation of SSL certificate. Default value is `true`.|
+|`smtp_server_address`  |M|string |IP address or host-name of the SMTP server.|
+|`smtp_server_port`     |O|decimal|Port number of the SMTP server. Default value is `587`.|
+|`smtp_authentication`  |O|string |The value should be `plain`, `login` or `cram_md5`. Please refer `authtype` option of the back-end [Net::SMTP.start](https://docs.ruby-lang.org/ja/latest/method/Net=3a=3aSMTP/s/start.html). The default value is `plain`.|
+|`smtp_enable_tls`      |O|boolean|When this value is `true`, enables TLS connection for SMTP. The default value is `true`.|
+|`smtp_validate_ssl`         |O|boolean|When this value is `false`, application skips validation of SSL certificate. The default value is `true`.|
+|`smtp_user_name`       |C|string |Default user name for SMTP authentication.|
+|`smtp_pass`            |C|string |Default password for SMTP authentication.|
+|`from_address`         |C|string |Default mail address used for `From:` header of the message.|
+|`charset`              |O|string |Charter-set used as encoding of body. The default value is "ISO-2022-JP".|
+|`list_unsubscribe_base`|O|string |Base address of List-Unsubscribe URL. The default value is "" &mdash; empty string.|
+
+This script assumes that SMTP requires some sort of authentication.
+SMTP without authentication is not supported.
+
+Keys categorized as "C" in the table become default values of `MailThis` attributes for sending messages.
+Following table shows mapping between configuration keys and attributes.
+
+|Configuration key|Attribute|
+|:----------------|:----------|
+|`smtp_pass`|`password`|
+|`smtp_user_name`|`user_name`|
+|`from_address`|`from`|
 
 ## RFC 8058 Support
 
-When the input message file contains `list-unsubscribe-unique:` header, this script generates `List-Unsubscribe` and `List-Unsubscribe-Post` header based on `list-unsubscribe-unique` and `@config.list_unsubscribe_message`
+If the `MailThis` object has non-null `list_unsubscribe_unique` attribute,
+this script generates `List-Unsubscribe` and `List-Unsubscribe-Post` header based on `list_unsubscribe_unique` and `list_unsubscribe_base` attribute in configuration.
+
+The `list_unsubscribe_unique` attribute can be set either of following manner:
+- Include `list-unsubscribe-unique:` header in the message.
+- Set attribute via its accessor.
+
+Additionally, the text `$LIST_UNSUBSCRIBE_LINK` in the message is replaced by the value of `List-Unsubscribe` header.
+
+```
+LIST_UNSUBSCRIBE_LINK = list_unsubscribe_base + list_unsubscribe_unique
+```
 
 ## Sample to use `MailThis.rb` as module - `MailDist.rb`
 
