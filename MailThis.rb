@@ -19,25 +19,25 @@ rescue LoadError
 end
 
 class MailConfig
-  KEYS = [
-      "smtp_server_address",
-      "smtp_server_port",
-      "smtp_enable_tls",
-      "smtp_user_name",
-      "smtp_pass",
-      "from_address",
-      "charset",
-      "list_unsubscribe_base",
-      "validate_ssl",
-      "debug"
-  ]
+  CONFIG = {
+    'smtp_server_address' => nil,
+    'smtp_server_port' => 587,  # 587 is well known port for SMTP.
+    'smtp_authentication' => 'plain', # 'plain', 'login' or 'cram_md5'.
+    'smtp_enable_tls' => true,
+    'smtp_validate_ssl' => true,
+    'smtp_user_name' => nil,
+    'smtp_pass' => nil,
+    'from_address' => nil,
+    'charset' => 'ISO-2022-JP',
+    'list_unsubscribe_base' => '',
+    'debug' => false
+  }
   def initialize(filename = "config.json")
-    # Default values for mandatory members.
-    add_variable('from_address', nil)
-    add_variable('smtp_user_name', nil)
-    add_variable('smtp_pass', nil)
-    # Import members.
+    # Set default values.
+    import_hash(CONFIG)
+    # Import members from constants.
     import_const()
+    # Import members from configuration file.
     File.exist?(filename) and File.open(filename) do |j|
       import_hash(JSON.load(j))
     end
@@ -45,7 +45,6 @@ class MailConfig
   end
 
   def debug?()
-    return false unless defined?(@debug)
     return @debug
   end
 
@@ -53,24 +52,19 @@ class MailConfig
     raise "smtp_enable_tls shall be bool" unless is_bool?(@smtp_enable_tls)
     raise "smtp_server_port shall be int" unless @smtp_server_port.is_a?(Integer)
     raise "smtp_server_address is not defined" unless defined?(@smtp_server_address)
-    @charset = 'ISO-2022-JP' unless defined?(@charset)
-    @smtp_pass = nil unless defined?(@smtp_pass)
-    @smtp_user_name = nil unless defined?(@smtp_user_name)
-    @from_address = nil unless defined?(@from_address)
-    @list_unsubscribe_base = '' unless defined?(@list_unsubscribe_base)
-    add_variable('validate_ssl', true) unless defined?(@validate_ssl)
   end
 
   private def import_hash(hash)
     return unless hash.is_a?(Hash)
-    KEYS.each do |key|
+    CONFIG.keys.each do |key|
       add_variable(key, hash[key]) if hash.has_key?(key)
     end
   end
 
   private def import_const()
-    KEYS.each do |key|
-      add_variable(key, eval("#{key.upcase}")) if eval("defined?(#{key.upcase})")
+    CONFIG.keys.each do |key|
+      val = key.upcase
+      add_variable(key, eval("#{val}")) if eval("defined?(#{val})")
     end
   end
 
@@ -97,6 +91,9 @@ class MailThis
     @list_unsubscribe_unique = nil
     @attachments = Array.new
     @log = nil
+    @from = @config.from_address
+    @user_name = @config.smtp_user_name
+    @password = @config.smtp_pass
     File.open(filename) { |f|
       loop do
         l = f.gets.chomp
@@ -115,9 +112,6 @@ class MailThis
       end
       @body = f.read
     }
-    @from = @config.from_address
-    @user_name = @config.smtp_user_name
-    @password = @config.smtp_pass
   end
 
   def add_attachment(file)
@@ -137,7 +131,7 @@ class MailThis
     # Note: encode everytime, since body may includes unsubscribe link.
     encode_message
 
-    if @config.validate_ssl
+    if @config.smtp_validate_ssl
       ssl_verify_mode = nil
     else
       ssl_verify_mode = OpenSSL::SSL::VERIFY_NONE
@@ -145,7 +139,7 @@ class MailThis
     opt = {
       :address => @config.smtp_server_address,
       :port => @config.smtp_server_port,
-      :authentication => :login,  # TODO make this configuration option.
+      :authentication => @config.smtp_authentication.to_sym,
       :enable_starttls_auto => @config.smtp_enable_tls,
       :user_name => @user_name,
       :password => @password,
@@ -209,7 +203,7 @@ class MailThis
   end
 
   private def remove_html_tag(str)
-    str.gsub(%r{<!--.*?-->}m,'').gsub(%r{</?[^>]+?>}, '')
+    str.gsub(%r{<!--.*?-->}m, '').gsub(%r{</?[^>]+?>}, '')
   end
 
   private def encode_text_part(body)
