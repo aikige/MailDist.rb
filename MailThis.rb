@@ -21,16 +21,17 @@ end
 class MailConfig
   CONFIG = {
     'smtp_server_address' => nil,
-    'smtp_server_port' => 587,  # 587 is well known port for SMTP.
+    'smtp_server_port' => 587, # 587 is well known port for SMTP.
     'smtp_authentication' => 'plain', # 'plain', 'login' or 'cram_md5'.
-    'smtp_enable_tls' => true,
-    'smtp_validate_ssl' => true,
+    'smtp_enable_tls' => true, # Use TLS for SMTP connection.
+    'smtp_validate_ssl' => true, # Validate SSL certificate or not.
     'smtp_user_name' => nil,
     'smtp_pass' => nil,
     'from_address' => nil,
-    'charset' => 'ISO-2022-JP',
+    'charset' => 'ISO-2022-JP', # Expected character-set used for text/plain part of the message body.
     'list_unsubscribe_base' => '',
-    'debug' => false
+    'verbose' => 'true', # For debug: increase debug messages.
+    'dry_run' => false # To debug internal algorithm: when 'true', skip sending E-mail.
   }
   def initialize(filename = "config.json")
     # Set default values.
@@ -42,10 +43,6 @@ class MailConfig
       import_hash(JSON.load(j))
     end
     validate()
-  end
-
-  def debug?()
-    return @debug
   end
 
   private def validate()
@@ -118,7 +115,7 @@ class MailThis
     @attachments.push(file)
   end
 
-  def send(from_scratch = true)
+  def send
     # Check necessary fields.
     raise "no @from" if @from.nil?
     raise "no @to" if @to.nil?
@@ -126,9 +123,7 @@ class MailThis
     raise "no @user_name" if @user_name.nil?
     raise "no @password" if @password.nil?
 
-    @mail = nil if from_scratch
-
-    # Note: encode everytime, since body may includes unsubscribe link.
+    # Note: encode everytime, since the body can include unsubscribe link.
     encode_message
 
     if @config.smtp_validate_ssl
@@ -147,17 +142,14 @@ class MailThis
     }
     @mail.delivery_method(:smtp, opt)
 
-    if @config.debug?
-      show_log(@mail.to_s)
-    else
-      show_log("Sending from #{@from.to_s} to #{@name} <#{@to.to_s}>...")
-      @mail.deliver!
-      show_log('Done!')
-    end
+    show_log("Sending from #{@from.to_s} to #{@name} <#{@to.to_s}>...")
+    @mail.deliver! unless @config.dry_run
+    show_log(@mail.to_s) if @config.verbose
+    show_log('Done!')
   end
 
   def to_s
-    "body=#{@body},subject=#{@subject},to=#{@to}"
+    "body=#{@body},subject=#{@subject},to=#{@to},mail=#{@mail.to_s}"
   end
 
   private def show_log(str)
@@ -250,8 +242,6 @@ if $0 == __FILE__
   while f = ARGV.shift do
     m.add_attachment(f)
   end
-  p m
-  p m.to_s
   m.send
 end
 
