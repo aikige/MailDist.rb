@@ -128,7 +128,20 @@ Additionally, the text `$LIST_UNSUBSCRIBE_LINK` in the message is replaced by th
 LIST_UNSUBSCRIBE_LINK = list_unsubscribe_base + list_unsubscribe_unique
 ```
 
-## Sample to use `MailThis.rb` as module - `MailDist.rb`
+## Use `MailThis.rb` as python module
+
+### Basic Usage
+
+sample script:
+```ruby
+require 'MailThis'
+mail = MailThis.new('message.txt')
+mail.from = "src@example.com" # change/set "From:" header.
+mail.to = "dst@example.com"   # change/set "To:" header.
+mail.send() # send the message.txt
+```
+
+### Sample Script
 
 `MailThis.rb` can be used as module, and `MailDist.rb` provides example how to use it.
 
