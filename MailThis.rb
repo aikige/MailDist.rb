@@ -76,39 +76,48 @@ class MailConfig
 end
 
 class MailThis
-  attr_writer :from, :password, :user_name, :to, :cc, :subject, :log, :name, :list_unsubscribe_unique
+  attr_writer :from, :password, :user_name, # SMTP parameters
+    :to, :cc, :subject, :list_unsubscribe_unique, # Headers
+    :body, :is_html, # Message-body parameters
+    :log, :name,
 
-  def initialize(filename, config_fn = 'config.json')
-    @config = MailConfig.new(config_fn)
-    if (filename =~ /.html*$/)
-      @html = true
-    else
-      @html = false
+  def import_header(name, line)
+    # Import header from single line.
+    if eval("line =~ /^#{name}:/") then
+      val = name.gsub('-','_')
+      eval("@#{val} = line.sub(/^#{name}:\s+/i, '')")
+      return true
     end
+    return false
+  end
+
+  def analyze_file(filename)
+    # Import a body and headers from the file.
+    File.exist?(filename) and File.open(filename) do |f|
+      while l = f.gets.strip do
+        if l =~ /^$/ then
+          break
+        end
+        for header in ['subject', 'to', 'cc', 'list-unsubscribe-unique'] do
+          break if import_header(header, l)
+        end
+      end
+      @body = f.read
+      @is_html = true if (filename =~ /\.html*$/)
+    end
+  end
+
+  def initialize(filename = nil, config_fn = 'config.json', &block)
+    @config = MailConfig.new(config_fn)
     @list_unsubscribe_unique = nil
     @attachments = Array.new
     @log = nil
     @from = @config.from_address
     @user_name = @config.smtp_user_name
     @password = @config.smtp_pass
-    File.open(filename) { |f|
-      loop do
-        l = f.gets.chomp
-        case l
-        when /^$/ then
-          break
-        when /^subject:/i then
-          @subject = l.sub(/^subject:\s+/i, '')
-        when /^to:/i then
-          @to = l.sub(/^to:\s+/i, '')
-        when /^cc:/i then
-          @cc = l.sub(/^cc:\s+/i, '')
-        when /^list-unsubscribe-unique:/i then
-          @list_unsubscribe_unique = l.sub(/^list-unsubscribe-unique:\s+/i, '')
-        end
-      end
-      @body = f.read
-    }
+    @is_html = false
+    analyze_file(filename) unless filename.nil?
+    block.call if block_given?
   end
 
   def add_attachment(file)
@@ -122,6 +131,7 @@ class MailThis
     raise "no @subject" if @subject.nil?
     raise "no @user_name" if @user_name.nil?
     raise "no @password" if @password.nil?
+    raise "no @body" if @body.nil?
 
     # Note: encode everytime, since the body can include unsubscribe link.
     encode_message
@@ -153,7 +163,7 @@ class MailThis
   end
 
   private def show_log(str)
-    @log.puts(str) unless @log.nil?
+    @log.puts(str) if @log.respond_to?(:puts)
     STDERR.puts(str)
   end
 
@@ -179,7 +189,7 @@ class MailThis
     # when 'mail-iso-2022-jp' is used.
 
     # Add format dependent body.
-    if (@html == true)
+    if (@is_html == true)
       encode_text_part(remove_html_tag(body))
       encode_html_part(body)
     elsif (@attachments.size > 0)
