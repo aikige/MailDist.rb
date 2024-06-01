@@ -132,13 +132,25 @@ LIST_UNSUBSCRIBE_LINK = list_unsubscribe_base + list_unsubscribe_unique
 
 ### Basic Usage
 
-sample script:
 ```ruby
 require 'MailThis'
-mail = MailThis.new('message.txt')
-mail.from = "src@example.com" # change/set "From:" header.
-mail.to = "dst@example.com"   # change/set "To:" header.
-mail.send() # send the message.txt
+mail = MailThis.new
+mail.body = "This is a body of a sample message."
+mail.subject = "Sample message"
+mail.from = "src@example.com"
+mail.to = "dst@example.com"
+mail.send() # send the message.
+```
+or
+```ruby
+require 'MailThis'
+mail = MailThis.new do
+  @body = "This is a body of a sample message."
+  @subject = "Sample message"
+  @from = "src@example.com"
+  @to = "dst@example.com"
+  send()
+end
 ```
 
 ### Sample Script
