@@ -187,7 +187,7 @@ database.each do |usr|
   if list_unsubscribe
     mail.list_unsubscribe_unique = "from=#{usr['Address']}".gsub(/@/, '%40')
   end
-  mail.send(false)
+  mail.send
 end
 
 show_log('Finish!')
