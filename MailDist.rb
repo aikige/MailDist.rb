@@ -87,6 +87,7 @@ attach_files = Array.new
 flag = nil
 update_encrypt = false
 list_unsubscribe = false
+silent = false
 
 # Option
 opt = OptionParser.new
@@ -98,6 +99,7 @@ opt.on('-a FILE', '--attachment=FILE', 'Add attachment file.') { |v| attach_file
 opt.on('-f FLAG', '--flag=FLAG', 'Set flag to select user.') { |v| flag = v }
 opt.on('-e', '--encrypt', 'Encrypt password in password file.') { |v| update_encrypt = true }
 opt.on('-l', '--list-unsubscribe', 'Enable List-Unsubscribe header.') { |v| list_unsubscribe = true }
+opt.on('-s', '--silent', 'Silently execute all.') { |v| silent = true }
 opt.parse!(ARGV)
 
 # Log File
@@ -133,11 +135,13 @@ show_log('address: ' + address_csv)
 show_log('password: ' + password_csv)
 show_log('attachment: ' + attach_files.to_s) if (attach_files.size > 0)
 
-show_log('Are you sure to send? (y/n)> ', true)
-ans = gets
-unless ans.downcase.include?('y')
-  show_log('quit...')
-  exit
+unless silent then
+  show_log('Are you sure to send? (y/n)> ', true)
+  ans = gets
+  unless ans.downcase.include?('y') then
+    show_log('quit...')
+    exit
+  end
 end
 
 mail = MailThis.new(message_file)
