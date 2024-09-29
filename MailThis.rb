@@ -30,7 +30,7 @@ class MailConfig
     'from_address' => nil,
     'charset' => 'ISO-2022-JP', # Expected character-set used for text/plain part of the message body.
     'list_unsubscribe_base' => '',
-    'verbose' => 'true', # For debug: increase debug messages.
+    'verbose' => false, # For debug: increase debug messages.
     'dry_run' => false # To debug internal algorithm: when 'true', skip sending E-mail.
   }
   def initialize(filename = "config.json")
@@ -98,7 +98,7 @@ class MailThis
         if l =~ /^$/ then
           break
         end
-        for header in ['subject', 'to', 'cc', 'list-unsubscribe-unique'] do
+        for header in ['subject', 'to', 'cc', 'reply-to', 'list-unsubscribe-unique'] do
           break if import_header(header, l)
         end
       end
@@ -183,6 +183,7 @@ class MailThis
     @mail.cc = @cc unless @cc.nil?
     @mail.from = @from
     @mail.subject = @subject unless @subject.nil?
+    @mail.reply_to = @reply_to unless @reply_to.nil?
     body = add_list_unsubscribe(@body)
     # Note:
     # Content-Transfer-Encoding setting is not required
