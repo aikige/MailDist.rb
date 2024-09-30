@@ -98,7 +98,7 @@ class MailThis
         if l =~ /^$/ then
           break
         end
-        for header in ['subject', 'to', 'cc', 'reply-to', 'list-unsubscribe-unique'] do
+        for header in ['subject', 'to', 'cc', 'from', 'reply-to', 'list-unsubscribe-unique'] do
           break if import_header(header, l)
         end
       end

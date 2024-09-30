@@ -153,17 +153,9 @@ end
 # Send message to all user listed in CSV.
 database = CSV.read(address_csv, headers: true)
 database.each do |usr|
-  from = range_to_addr[usr['Range']] unless usr['Range'].nil?
-  from = usr['From'] unless usr['From'].nil? if from.nil?
-  uid = addr_to_uid[from] unless from.nil?
-  if uid.nil? then
-    show_log("No destination for #{usr['Name']}")
-    next
-  end
-
-  passwd = uid_to_pass[uid]
-  if passwd.nil? then
-    show_log("No password for #{usr['Name']}")
+  # Skip if address is not available.
+  if usr['Address'].nil? or !(usr['Address'].include?('@')) then
+    show_log("Invalid Address for #{usr['Name']}:#{usr['Address']}")
     next
   end
 
@@ -177,9 +169,25 @@ database.each do |usr|
     next
   end
 
-  # Skip if address is not available.
-  if usr['Address'].nil? or !(usr['Address'].include?('@')) then
-    show_log("Invalid Address for #{usr['Name']}:#{usr['Address']}")
+  # Select from field.
+  if not mail.from.nil? then
+    # When from field is written in the header, prioritize it.
+    from = mail.from
+  elsif not usr['Range'].nil? then
+    from = range_to_addr[usr['Range']]
+  elsif not usr['From'].nil? then
+    from = usr['From']
+  end
+
+  uid = addr_to_uid[from] unless from.nil?
+  if uid.nil? then
+    show_log("Invalid From field <#{from}> for #{usr['Name']} (no UID)")
+    next
+  end
+
+  passwd = uid_to_pass[uid]
+  if passwd.nil? then
+    show_log("Invalid From field <#{from}> for #{usr['Name']} (no Password)")
     next
   end
 
