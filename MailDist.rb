@@ -165,7 +165,7 @@ database.each do |usr|
     next
   end
   unless flag.nil? or usr['Flag'].include?(flag) then
-    show_log("Skip #{usr['Name']}:#{usr['Flag']}/#{flag}")
+    show_log("Skip #{usr['Name']}:#{usr['Flag']} does not include #{flag}")
     next
   end
 

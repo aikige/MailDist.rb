@@ -76,10 +76,11 @@ class MailConfig
 end
 
 class MailThis
-  attr_writer :from, :password, :user_name, # SMTP parameters
+  attr_writer :password, :user_name, # SMTP parameters
     :to, :cc, :subject, :list_unsubscribe_unique, # Headers
     :body, :is_html, # Message-body parameters
-    :log, :name,
+    :log, :name
+  attr_accessor :from
 
   def import_header(name, line)
     # Import header from single line.
