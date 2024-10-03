@@ -149,6 +149,7 @@ mail.log = $stdout
 attach_files.each do |a|
   mail.add_attachment(a)
 end
+dedicated_from = mail.from
 
 # Send message to all user listed in CSV.
 database = CSV.read(address_csv, headers: true)
@@ -170,9 +171,9 @@ database.each do |usr|
   end
 
   # Select from field.
-  if not mail.from.nil? then
+  if not dedicated_from.nil? then
     # When from field is written in the header, prioritize it.
-    from = mail.from
+    from = dedicated_from
   elsif not usr['Range'].nil? then
     from = range_to_addr[usr['Range']]
   elsif not usr['From'].nil? then
