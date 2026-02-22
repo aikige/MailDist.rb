@@ -40,16 +40,16 @@ A simple ruby script to send text message.
 ## Synopsis
 
 ```
-MailThis.rb FILENAME(s)
+MailThis.rb MESSAGE_FILE [ATTACHMENT_FILE...]
 ```
 
-* The first file is used as header and body generation.
+* `MESSAGE_FILE`: The first argument is a mandatory parameter and it is treated as the filename of the _Message_ that contains header and body.
   For detail, plese check [Message format](#message-format) below.
-* If you specify multiple filename, 2nd or succeeding files are treated as attachment file.
+* `ATTACHMENT_FILE(s)`: Subsequent arguments are treated as attachment files.
 
 ## Message format
 
-The message format is as follows
+The _Message_ format is as follows
 
 ```
 to: sample@example.com
@@ -58,9 +58,9 @@ subject: sample subject
 Message body.
 ```
 
-1. The input file shall be encoded by UTF-8.
-1. Message should include header part which gives `To` header and `Subject` header used by E-mail, and optionally include `Cc` header.
-1. Header part and Body part is separated by null-line.
+1. The _Message_ shall be encoded by UTF-8.
+1. The _Message_ should include header part which gives `to` header and `subject` header used by E-mail, and optionally include `cc` and `reply-to` header.
+1. The header part and the body part is separated by null-line.
 
 If you want to send HTML formatted E-mail, please use '.html' extension for the filename.
 The script determines input data format between `text/plain` and `text/html` based on extension.
