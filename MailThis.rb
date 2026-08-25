@@ -99,7 +99,7 @@ class MailThis
         if l =~ /^$/ then
           break
         end
-        for header in ['subject', 'to', 'cc', 'from', 'reply-to', 'list-unsubscribe-unique'] do
+        for header in ['subject', 'to', 'cc', 'bcc', 'from', 'reply-to', 'list-unsubscribe-unique'] do
           break if import_header(header, l)
         end
       end
@@ -182,6 +182,7 @@ class MailThis
     @mail.charset = @config.charset
     @mail.to = @to unless @to.nil?
     @mail.cc = @cc unless @cc.nil?
+    @mail.bcc = @bcc unless @bcc.nil?
     @mail.from = @from
     @mail.subject = @subject unless @subject.nil?
     @mail.reply_to = @reply_to unless @reply_to.nil?
