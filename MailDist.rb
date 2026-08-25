@@ -155,7 +155,8 @@ dedicated_from = mail.from
 database = CSV.read(address_csv, headers: true)
 database.each do |usr|
   # Skip if address is not available.
-  if usr['Address'].nil? or !(usr['Address'].include?('@')) then
+  next if usr['Address'].nil?
+  unless usr['Address'].include?('@') then
     show_log("Invalid Address for #{usr['Name']}:#{usr['Address']}")
     next
   end
