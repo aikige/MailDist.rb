@@ -37,6 +37,14 @@ A simple ruby script to send text message.
     ```
 1. Then you'll get E-mail sent.
 
+## TIP (for Bundler users)
+
+When you (or OS) upgrade ruby itself, the `send.sh` or `dist.sh` script may ends by error (usually, a `LoadError` will be thrown by `bundle` module).
+
+This is usually caused by version mismatch between cached scripts and Bundler version.
+
+In that case, please try to remove `.bundle` folder and `Gemfile.lock` and execute script again.
+
 ## Synopsis
 
 ```
